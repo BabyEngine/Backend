@@ -39,36 +39,12 @@ func (app *Application) Init(L *lua.State) {
     //app.apiMap["print"] = gPrint
     app.apiMap["AppLog"] = gAppLog
 
+    // 创建全局 BabyEngine 表
     L.CreateTable(0, 1)
     L.SetGlobal("BabyEngine")
-    L.GetGlobal("BabyEngine")
     // KV 表
-    L.PushString("KV")
-    {
-        // 创建子表
-        L.CreateTable(0, 1)
-        // OpenFunc
-        L.PushString("Open")
-        L.PushGoFunction(gKVOpen)
-        L.SetTable(-3)
-
-        L.PushString("Get")
-        L.PushGoFunction(gKVGet)
-        L.SetTable(-3)
-
-        L.PushString("Put")
-        L.PushGoFunction(gKVPut)
-        L.SetTable(-3)
-
-        L.PushString("RemoveValue")
-        L.PushGoFunction(gKVRemoveValue)
-        L.SetTable(-3)
-
-        L.PushString("RemoveBucket")
-        L.PushGoFunction(gKVRemoveBucket)
-        L.SetTable(-3)
-    }
-    L.SetTable(-3)
+    initModKV(L)
+    // TODO Net 表
 
     // 导出接口
     for k, v := range app.apiMap {

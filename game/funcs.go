@@ -5,7 +5,6 @@ import (
     "fmt"
     "github.com/BabyEngine/Backend/Debug"
     "github.com/BabyEngine/Backend/events"
-    "github.com/BabyEngine/Backend/kv"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
 )
@@ -163,85 +162,5 @@ func gPrint(L *lua.State) int {
 func gAppLog(L *lua.State) int  {
     msg := L.CheckString(-1)
     Debug.Log(msg)
-    return 0
-}
-
-// 打开kvdb
-func gKVOpen(L *lua.State) int {
-    path := L.CheckString(-1)
-    if db, err := kv.OpenKVDB(path); err != nil {
-        return 0
-    } else {
-        L.PushGoStruct(db)
-        return 1
-    }
-}
-// 写db
-func gKVPut(L *lua.State) int {
-    ptr := L.ToGoStruct(1)
-    bucketName := L.ToString(2)
-    key := L.ToString(3)
-    value := L.ToBytes(4)
-    if db, ok := ptr.(*kv.DB); ok {
-        if err := db.Update(bucketName, key, value); err == nil {
-            L.PushNil()
-            L.PushBoolean(true)
-            return 2
-        } else {
-            L.PushString(fmt.Sprint(err))
-            L.PushBoolean(false)
-            return 2
-        }
-    }
-    L.PushNil()
-    L.PushBoolean(false)
-    return 2
-}
-// 读db
-func gKVGet(L *lua.State) int {
-    ptr := L.ToGoStruct(1)
-    bucketName := L.ToString(2)
-    key := L.ToString(3)
-    cbRef := L.Ref(lua.LUA_REGISTRYINDEX)
-    if db, ok := ptr.(*kv.DB); ok {
-        db.View(bucketName, key, func(i []byte, err error) {
-            events.DefaultEventSystem.OnMainThread(func() {
-                defer L.Unref(lua.LUA_REGISTRYINDEX, cbRef)
-                L.RawGeti(lua.LUA_REGISTRYINDEX, cbRef)
-                if L.Type(-1) == lua.LUA_TFUNCTION {
-                    if err != nil {
-                        L.PushNil()
-                        L.PushString(fmt.Sprint(err))
-                    } else {
-                        if i == nil {
-                            L.PushNil()
-                        } else {
-                            L.PushBytes(i)
-                        }
-                        L.PushNil()
-                    }
-                    L.Call(2, 0)
-                }
-            })
-        })
-    }
-    return 0
-}
-
-func gKVRemoveValue(L *lua.State) int {
-    ptr := L.ToGoStruct(1)
-    bucketName := L.ToString(2)
-    key := L.ToString(3)
-    if db, ok := ptr.(*kv.DB); ok {
-        db.RemoveValue(bucketName, key)
-    }
-    return 0
-}
-func gKVRemoveBucket(L *lua.State) int {
-    ptr := L.ToGoStruct(1)
-    bucketName := L.ToString(2)
-    if db, ok := ptr.(*kv.DB); ok {
-        db.RemoveBucket(bucketName)
-    }
     return 0
 }

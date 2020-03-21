@@ -14,13 +14,13 @@ func StartNetServer(L *lua.State, netType string, address string, tag string) Cl
 }
 
 func BindNetServerFunc(L *lua.State, p interface{}, name string, ref int)  {
-    s := p.(*mKCPGameServerHandler)
+    s := p.(*KCPGameServerHandler)
     L.GetGlobal("A")
     s.BindFunc(name, ref)
 }
 
 func SendNetData(L *lua.State, p interface{}, cliId int64, data []byte)  {
-    s := p.(*mKCPGameServerHandler)
+    s := p.(*KCPGameServerHandler)
     if s == nil {
         return
     }
@@ -28,7 +28,7 @@ func SendNetData(L *lua.State, p interface{}, cliId int64, data []byte)  {
 }
 
 func CloseClient(L *lua.State, p interface{}, cliId int64)  {
-    s := p.(*mKCPGameServerHandler)
+    s := p.(*KCPGameServerHandler)
     if s == nil {
         return
     }
@@ -36,7 +36,7 @@ func CloseClient(L *lua.State, p interface{}, cliId int64)  {
 }
 
 func SendNetRawData(L *lua.State, p interface{}, cliId int64, op OpCode, data []byte)  {
-    s := p.(*mKCPGameServerHandler)
+    s := p.(*KCPGameServerHandler)
     if s == nil {
         return
     }

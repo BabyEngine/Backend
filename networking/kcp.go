@@ -1,7 +1,7 @@
 package networking
 
 
-func mKCPListenAndServe(opts *Options) error {
+func KCPListenAndServe(opts *Options) error {
     var (
         server mKCPServer
     )
