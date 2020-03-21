@@ -1,17 +1,11 @@
 package networking
 
 import (
-    "github.com/BabyEngine/UnityConnector/common"
     "github.com/DGHeroin/golua/lua"
 
 )
 
-//var (
-//    serverMap = make(map[interface{}]*mKCPGameServerHandler)
-//    serverM   sync.RWMutex
-//)
-
-func StartNetServer(L *lua.State, netType string, address string, tag string) common.ClientHandler {
+func StartNetServer(L *lua.State, netType string, address string, tag string) ClientHandler {
     switch netType {
     case "kcp":
         return newKCP(L, address, tag)
@@ -41,7 +35,7 @@ func CloseClient(L *lua.State, p interface{}, cliId int64)  {
     s.CloseClient(cliId)
 }
 
-func SendNetRawData(L *lua.State, p interface{}, cliId int64, op common.OpCode, data []byte)  {
+func SendNetRawData(L *lua.State, p interface{}, cliId int64, op OpCode, data []byte)  {
     s := p.(*mKCPGameServerHandler)
     if s == nil {
         return

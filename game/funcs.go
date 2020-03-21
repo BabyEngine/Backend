@@ -7,7 +7,6 @@ import (
     "github.com/BabyEngine/Backend/events"
     "github.com/BabyEngine/Backend/kv"
     "github.com/BabyEngine/Backend/networking"
-    "github.com/BabyEngine/UnityConnector/common"
     "github.com/DGHeroin/golua/lua"
 )
 // 往主线程塞一个回调
@@ -99,7 +98,7 @@ func gRedirectNetClient(L*lua.State) int  {
     ptr := L.ToGoStruct(1)
     cliId := L.ToInteger(2)
     data := L.ToBytes(3)
-    networking.SendNetRawData(L, ptr, int64(cliId), common.OPCODE_TURN, data)
+    networking.SendNetRawData(L, ptr, int64(cliId), networking.OPCODE_TURN, data)
     return 0
 }
 // 退出app

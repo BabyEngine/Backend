@@ -5,9 +5,6 @@ import (
     "fmt"
     "github.com/BabyEngine/Backend/Debug"
     "github.com/BabyEngine/Backend/events"
-    "github.com/BabyEngine/UnityConnector"
-    "github.com/BabyEngine/UnityConnector/common"
-    _ "github.com/BabyEngine/UnityConnector/mKCP"
     "github.com/DGHeroin/golua/lua"
     "sync"
 )
@@ -21,7 +18,7 @@ type mKCPGameServerHandler struct {
     refData    int
     refError   int
     refRequest int
-    clients    map[int64]common.Client
+    clients    map[int64]Client
 }
 
 var (
@@ -30,10 +27,10 @@ var (
 
 func (m *mKCPGameServerHandler) Init() {
     m.ctx, m.cancel = context.WithCancel(context.Background())
-    m.clients = make(map[int64]common.Client)
+    m.clients = make(map[int64]Client)
 }
 
-func (m *mKCPGameServerHandler) OnNew(client common.Client) {
+func (m *mKCPGameServerHandler) OnNew(client Client) {
     Debug.LogIff(enableDebug, "OnNew:%v", client)
     events.DefaultEventSystem.OnMainThread(func() {
         m.clients[client.Id()] = client
@@ -46,7 +43,7 @@ func (m *mKCPGameServerHandler) OnNew(client common.Client) {
     })
 }
 
-func (m *mKCPGameServerHandler) OnData(client common.Client, data []byte) {
+func (m *mKCPGameServerHandler) OnData(client Client, data []byte) {
     Debug.LogIff(enableDebug, "OnData:%v %v", client, data)
     if data == nil || len(data) == 0 {
         return
@@ -63,7 +60,7 @@ func (m *mKCPGameServerHandler) OnData(client common.Client, data []byte) {
     })
 }
 
-func (m *mKCPGameServerHandler) OnClose(client common.Client) {
+func (m *mKCPGameServerHandler) OnClose(client Client) {
     Debug.LogIff(enableDebug, "OnClose:%v", client)
     m.CloseClient(client.Id())
     events.DefaultEventSystem.OnMainThread(func() {
@@ -76,7 +73,7 @@ func (m *mKCPGameServerHandler) OnClose(client common.Client) {
     })
 }
 
-func (m *mKCPGameServerHandler) OnError(client common.Client, err error) {
+func (m *mKCPGameServerHandler) OnError(client Client, err error) {
     Debug.LogIff(enableDebug, "OnError:%v %v", client, err)
     events.DefaultEventSystem.OnMainThread(func() {
         L := m.L
@@ -89,7 +86,7 @@ func (m *mKCPGameServerHandler) OnError(client common.Client, err error) {
     })
 
 }
-func (m *mKCPGameServerHandler) OnRequest(client common.Client, data []byte) []byte {
+func (m *mKCPGameServerHandler) OnRequest(client Client, data []byte) []byte {
     Debug.LogIff(enableDebug, "OnRequest:%v %v", client, data)
     var (
         wg     sync.WaitGroup
@@ -146,7 +143,7 @@ func (h *mKCPGameServerHandler) SendClientData(clientId int64, data []byte) {
         cli.SendData(data)
     }
 }
-func (h *mKCPGameServerHandler) SendClientRawData(clientId int64, op common.OpCode, data []byte) {
+func (h *mKCPGameServerHandler) SendClientRawData(clientId int64, op OpCode, data []byte) {
     Debug.Logf("重定向 %v %v %s", clientId, op, data)
     if cli, ok := h.clients[clientId]; ok {
         cli.SendRaw(op, data)
@@ -159,21 +156,37 @@ func (h *mKCPGameServerHandler) CloseClient(clientId int64) {
     }
 }
 
-func newKCP(L *lua.State, address string, tag string) common.ClientHandler {
+func newKCP(L *lua.State, address string, tag string) ClientHandler {
     // 主服务器
     h := &mKCPGameServerHandler{}
     h.L = L
     h.Init()
 
     go func() {
-        if err := UnityConnector.Listen(
-            common.WithType("kcp"),
-            common.WithTag(tag),
-            common.WithAddress(address),
-            common.WithContext(h.ctx),
-            common.WithHandler(h)); err != nil {
+        if err := Listen(
+            WithType("kcp"),
+            WithTag(tag),
+            WithAddress(address),
+            WithContext(h.ctx),
+            WithHandler(h)); err != nil {
         }
     }()
 
     return h
 }
+
+func Listen(options ...OptionFunc) error {
+    opts := &Options{}
+    for _, cb := range options {
+        cb(opts)
+    }
+    if opts.Ctx == nil {
+        opts.Ctx = context.TODO()
+    }
+    switch opts.Type {
+    case "kcp":
+        return mKCPListenAndServe(opts)
+    }
+    return ErrorOptionsInvalid
+}
+

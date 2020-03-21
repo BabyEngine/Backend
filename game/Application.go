@@ -4,7 +4,7 @@ import (
     "fmt"
     "github.com/BabyEngine/Backend/Debug"
     "github.com/BabyEngine/Backend/events"
-    "github.com/BabyEngine/UnityConnector/common"
+    "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
     "sync"
     "time"
@@ -18,13 +18,13 @@ func NewApp() *Application {
 type Application struct {
     L       *lua.State
     apiMap  map[string]func(state *lua.State) int
-    servers map[interface{}]common.ClientHandler
+    servers map[interface{}]networking.ClientHandler
     serverM sync.RWMutex
 }
 
 func (app *Application) Init(L *lua.State) {
     app.L = L
-    app.servers = make(map[interface{}]common.ClientHandler)
+    app.servers = make(map[interface{}]networking.ClientHandler)
     app.apiMap = make(map[string]func(state *lua.State) int)
     app.apiMap["Invoke"] = gInvoke
     app.apiMap["Exit"] = gExit
@@ -162,7 +162,7 @@ func (app *Application) Stop() {
     }
 }
 
-func (app *Application) SetNetServer(key interface{}, value common.ClientHandler)  {
+func (app *Application) SetNetServer(key interface{}, value networking.ClientHandler)  {
     app.serverM.Lock()
     if key != nil && value != nil { // add
         app.servers[key] = value
@@ -172,7 +172,7 @@ func (app *Application) SetNetServer(key interface{}, value common.ClientHandler
     app.serverM.Unlock()
 }
 
-func (app *Application) GetNetServer(key interface{}) common.ClientHandler {
+func (app *Application) GetNetServer(key interface{}) networking.ClientHandler {
     app.serverM.RLock()
     defer app.serverM.RUnlock()
     if e, ok := app.servers[key];ok {
