@@ -45,12 +45,12 @@ function NetService.startGameServer( addr )
         end
     end
 
-    server.OnRequest = function ( cli, data )
+    server.OnRequest = function ( cli, data, respFunc )
         if UnAuthConn[cli] then
-            UnAuthConn[cli].OnRequest(data)
+            UnAuthConn[cli].OnRequest(data, respFunc)
         end
         if AuthConn[cli] then
-            AuthConn[cli].OnRequest(data)
+            AuthConn[cli].OnRequest(data, respFunc)
         end
     end
 
@@ -79,8 +79,6 @@ local function onUpdateCheck ()
         end
     end
     UnAuthConn = keepList
-
-    print(NetService.status())
 end
 
 

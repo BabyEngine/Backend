@@ -16,17 +16,20 @@ func NewApp() *Application {
 }
 
 type Application struct {
-    L       *lua.State
-    apiMap  map[string]func(state *lua.State) int
-    servers map[interface{}]networking.ClientHandler
-    serverM sync.RWMutex
+    L        *lua.State
+    apiMap   map[string]func(state *lua.State) int
+    servers  map[interface{}]networking.ClientHandler
+    serverM  sync.RWMutex
+    eventSys *events.EventSystem
 }
 
 func (app *Application) Init(L *lua.State) {
     app.L = L
     app.servers = make(map[interface{}]networking.ClientHandler)
     app.apiMap = make(map[string]func(state *lua.State) int)
-
+    app.eventSys = events.NewEventSystem()
+    L.PushGoStruct(app)
+    L.SetGlobal("ApplicationContext")
     // 创建全局 BabyEngine 表
     L.CreateTable(0, 1)
     L.SetGlobal("BabyEngine")
@@ -103,12 +106,12 @@ func (app *Application) Start() {
     }
     updateTimer()
     tickCounter := uint64(0)
-    events.DefaultEventSystem.OnUpdateFunc = func() {
+    app.eventSys.OnUpdateFunc = func() {
         tickCounter++
         // set Time.time
         updateTimer()
         // invoke all callbacks
-        refs := events.DefaultEventSystem.AllRef()
+        refs := app.eventSys.AllRef()
         for _, ref := range refs {
             L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
             if L.IsFunction(-1) {
@@ -119,19 +122,19 @@ func (app *Application) Start() {
         }
     }
     // Main Loop
-    for events.DefaultEventSystem.IsRunning() {
-        events.DefaultEventSystem.Update()
+    for app.eventSys.IsRunning() {
+        app.eventSys.Update()
     }
 }
 func (app *Application) Stop() {
-    events.DefaultEventSystem.Stop()
-    events.DefaultEventSystem.Reset()
+    app.eventSys.Stop()
+    app.eventSys.Reset()
     for _, s := range app.servers {
         s.Stop()
     }
 }
 
-func (app *Application) SetNetServer(key interface{}, value networking.ClientHandler)  {
+func (app *Application) SetNetServer(key interface{}, value networking.ClientHandler) {
     app.serverM.Lock()
     if key != nil && value != nil { // add
         app.servers[key] = value
@@ -144,7 +147,7 @@ func (app *Application) SetNetServer(key interface{}, value networking.ClientHan
 func (app *Application) GetNetServer(key interface{}) networking.ClientHandler {
     app.serverM.RLock()
     defer app.serverM.RUnlock()
-    if e, ok := app.servers[key];ok {
+    if e, ok := app.servers[key]; ok {
         return e
     }
     return nil

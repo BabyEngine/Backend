@@ -4,6 +4,7 @@ require('games.Valkyrja.errors.errors')
 require('games.Valkyrja.net.pbdef')
 require('games.Valkyrja.net.GameMsg')
 require('games.Valkyrja.net.service')
+require('games.Valkyrja.misc.db')
 require('games.Valkyrja.player.PlayerActor')
 
 -- 设置update频率

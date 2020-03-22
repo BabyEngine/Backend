@@ -22,19 +22,19 @@ type EventCallback struct {
     isDelay bool
 }
 
-func init() {
-    DefaultEventSystem = NewEventSystem()
-    DefaultEventSystem.init()
-}
+//func init() {
+//    DefaultEventSystem = NewEventSystem()
+//    DefaultEventSystem.init()
+//}
 func NewEventSystem() *EventSystem {
     es := &EventSystem{}
     es.init()
     return es
 }
-
-var (
-    DefaultEventSystem *EventSystem
-)
+//
+//var (
+//    DefaultEventSystem *EventSystem
+//)
 
 func (s *EventSystem) init() {
     s.minSleepMs = 33

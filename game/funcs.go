@@ -4,17 +4,28 @@ import (
     "bytes"
     "fmt"
     "github.com/BabyEngine/Backend/Debug"
-    "github.com/BabyEngine/Backend/events"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
 )
+
+func GetApplication(L *lua.State) *Application {
+    L.GetGlobal("ApplicationContext")
+    ptr := L.ToGoStruct(-1)
+    L.Pop(1)
+    if p, ok := ptr.(*Application); ok {
+        return p
+    }
+    return nil
+}
+
 // 往主线程塞一个回调
 func gInvoke(L *lua.State) int {
+    app := GetApplication(L)
     if L.GetTop() == 1 { // next tick
         if L.Type(-1) == lua.LUA_TFUNCTION {
             var ref int = 0
             ref = L.Ref(lua.LUA_REGISTRYINDEX)
-            events.DefaultEventSystem.OnMainThread(func() {
+            app.eventSys.OnMainThread(func() {
                 L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
                 if L.Type(-1) == lua.LUA_TFUNCTION {
                     if err := L.Call(0, 0); err != nil {
@@ -28,7 +39,7 @@ func gInvoke(L *lua.State) int {
         delay := L.ToNumber(1)
         var ref int = 0
         ref = L.Ref(lua.LUA_REGISTRYINDEX)
-        events.DefaultEventSystem.OnMainThreadDelay(delay, func() {
+        app.eventSys.OnMainThreadDelay(delay, func() {
             L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
             if L.Type(-1) == lua.LUA_TFUNCTION {
                 if err := L.Call(0, 0); err != nil {
@@ -52,7 +63,7 @@ func gStartNetServer(L *lua.State) int {
     _app := L.ToGoStruct(-1)
     app:= _app.(*Application)
 
-    server := networking.StartNetServer(L, netType, addr, serverTag)
+    server := StartNetServer(L, netType, addr, serverTag)
     app.SetNetServer(app, server)
 
     L.PushGoStruct(server)
@@ -78,7 +89,7 @@ func gBindNetServer(L*lua.State) int {
     app:= _app.(*Application)
     app.GetNetServer(ptr)
 
-    networking.BindNetServerFunc(L, ptr, name, aFunc)
+    BindNetServerFunc(L, ptr, name, aFunc)
     return 0
 }
 // 给客户端发消息
@@ -86,14 +97,14 @@ func gSendNetData(L*lua.State) int {
     ptr := L.ToGoStruct(1)
     cliId := L.ToInteger(2)
     data := L.ToBytes(3)
-    networking.SendNetData(L, ptr, int64(cliId), data)
+    SendNetData(L, ptr, int64(cliId), data)
     return 0
 }
 // 关闭客户端
 func gCloseNetClient(L*lua.State) int {
     ptr := L.ToGoStruct(1)
     cliId := L.ToInteger(2)
-    networking.CloseClient(L, ptr, int64(cliId))
+    CloseClient(L, ptr, int64(cliId))
     return 0
 }
 // 重定向客户端到其他服务器
@@ -101,19 +112,21 @@ func gRedirectNetClient(L*lua.State) int  {
     ptr := L.ToGoStruct(1)
     cliId := L.ToInteger(2)
     data := L.ToBytes(3)
-    networking.SendNetRawData(L, ptr, int64(cliId), networking.OPCODE_TURN, data)
+    SendNetRawData(L, ptr, int64(cliId), networking.OPCODE_TURN, data)
     return 0
 }
 // 退出app
 func gExit(L *lua.State) int {
-    events.DefaultEventSystem.Stop()
+    app := GetApplication(L)
+    app.eventSys.Stop()
     return 0
 }
 // 往update加入一个回调
 func gAddUpdateFunc(L *lua.State) int {
+    app := GetApplication(L)
     ref := L.Ref(lua.LUA_REGISTRYINDEX)
     if L.IsFunction(-1) {
-        events.DefaultEventSystem.AddRef(ref)
+        app.eventSys.AddRef(ref)
         L.PushInteger(int64(ref))
         return 1
     }
@@ -121,8 +134,9 @@ func gAddUpdateFunc(L *lua.State) int {
 }
 // 设置update帧率
 func gSetFPS(L *lua.State) int {
+    app := GetApplication(L)
     fps := L.ToInteger(1)
-    events.DefaultEventSystem.SetFPS(fps)
+    app.eventSys.SetFPS(fps)
     return 0
 }
 // 覆盖lua print函数

@@ -42,11 +42,11 @@ function net.NewKCPBinaryServer(address, tag)
         self.OnData(cli, data)
     end
     local n = 0
-    local function onRequest(conn, data)
+    local function onRequest(conn, data, respFunc)
         local cli = clients[conn]
         if not cli then return end
         if not self.OnRequest then return end
-        return self.OnRequest(cli, data)
+        self.OnRequest(cli, data, respFunc)
     end
     function self.Start( )
         ptr = BabyEngine.Net.Start('kcp', address, tag)

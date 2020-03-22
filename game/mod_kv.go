@@ -3,7 +3,6 @@ package game
 import (
     "fmt"
     "github.com/BabyEngine/Backend/Debug"
-    "github.com/BabyEngine/Backend/events"
     "github.com/BabyEngine/Backend/kv"
     "github.com/DGHeroin/golua/lua"
 )
@@ -85,13 +84,14 @@ func gKVPut(L *lua.State) int {
 }
 // 读db
 func gKVGet(L *lua.State) int {
+    app := GetApplication(L)
     ptr := L.ToGoStruct(1)
     bucketName := L.ToString(2)
     key := L.ToString(3)
     cbRef := L.Ref(lua.LUA_REGISTRYINDEX)
     if db, ok := ptr.(*kv.DB); ok {
         db.View(bucketName, key, func(i []byte, err error) {
-            events.DefaultEventSystem.OnMainThread(func() {
+            app.eventSys.OnMainThread(func() {
                 defer L.Unref(lua.LUA_REGISTRYINDEX, cbRef)
                 L.RawGeti(lua.LUA_REGISTRYINDEX, cbRef)
                 if L.Type(-1) == lua.LUA_TFUNCTION {

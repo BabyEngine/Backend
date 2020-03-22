@@ -75,6 +75,7 @@ func (s *mKCPServer) handleKCPConn(conn net.Conn) {
     client := &mKCPClient{
         conn: conn,
         opts: s.opts,
+        server:s,
     }
     s.wg.Add(1)
     defer func() {

@@ -1,3 +1,14 @@
+local cjson = require "cjson"
+
+json = json or {}
+function json.encode( t )
+    return cjson.encode(t)
+end
+
+function json.decode( t )
+    return cjson.decode(t)
+end
+
 function table.encode(...)
     local node = {...}
     if #node == 1 and type(node[1]) == 'table' then
