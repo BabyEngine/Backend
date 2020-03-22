@@ -1,4 +1,4 @@
-netd = {}
+NetService = {}
 -- 区域
 local zones = {
     lobby = {}
@@ -9,9 +9,9 @@ local AuthConn   = {} -- 已经认证玩家
 local lastCheckTime = -1 -- 时间标识
 
 -- 游戏消息服务器
-function netd.startGameServer( addr )
+function NetService.startGameServer( addr )
     local server = net.NewKCPBinaryServer(addr, "ValkyrjaGameServer")
-    netd.server = server
+    NetService.server = server
     server.OnNew = function ( cli )
         -- 新连接进来的玩家放到未认证列表, 10秒内没有认证则踢出服务器
         local player = NewPlayerActor(cli)
@@ -57,7 +57,7 @@ function netd.startGameServer( addr )
     server.Start()
 end
 
-function netd.OnAuth ( cli, player )
+function NetService.OnAuth ( cli, player )
     if UnAuthConn[cli] then
         UnAuthConn[cli] = nil
     end
@@ -80,11 +80,11 @@ local function onUpdateCheck ()
     end
     UnAuthConn = keepList
 
-    print(netd.status())
+    print(NetService.status())
 end
 
 
-function netd.status(  )
+function NetService.status(  )
     local c1 = 0
     local c2 = 0
     for k,v in pairs(UnAuthConn) do

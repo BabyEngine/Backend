@@ -2,14 +2,15 @@ package networking
 
 import (
     "fmt"
+    "github.com/BabyEngine/Backend/Debug"
     "github.com/xtaci/kcp-go"
     "net"
     "sync"
+    "sync/atomic"
     "time"
 )
 
 type mKCPServer struct {
-    //handler  ClientHandler
     opts     *Options
     wg       sync.WaitGroup
     totalQPS uint32
@@ -22,6 +23,10 @@ type mKCPServer struct {
     clientId int64
 }
 
+func (s *mKCPServer) Init() {
+    s.clients = make(map[int64]*mKCPClient)
+}
+
 func (s *mKCPServer) Serve(address string) error {
     ln, err := kcp.Listen(address)
     if err != nil {
@@ -30,7 +35,9 @@ func (s *mKCPServer) Serve(address string) error {
     ticker := time.NewTicker(time.Second)
     defer func() {
         if ln != nil {
-            ln.Close()
+            if err := ln.Close(); err != nil {
+                Debug.Log(err)
+            }
         }
         ticker.Stop()
     }()
@@ -40,7 +47,9 @@ func (s *mKCPServer) Serve(address string) error {
             select {
             case <-s.opts.Ctx.Done():
                 if ln != nil {
-                    ln.Close()
+                    if err := ln.Close(); err != nil {
+                        Debug.Log(err)
+                    }
                 }
                 ln = nil
             case <-ticker.C:
@@ -128,5 +137,16 @@ func (s *mKCPServer) checkClient() {
     deathCount := len(deathList)
     if deathCount > 0 {
         fmt.Printf("当前客户端 总数:%d 死亡:%d\n", totalCount, deathCount)
+    }
+}
+
+// 网络统计
+func (s *mKCPServer) onNetStat(aType int, n, l uint64)  {
+    if aType == 0 {
+        atomic.AddUint64(&s.rp, n)
+        atomic.AddUint64(&s.rx, l)
+    } else if aType == 1 {
+        atomic.AddUint64(&s.tp, n)
+        atomic.AddUint64(&s.tx, l)
     }
 }

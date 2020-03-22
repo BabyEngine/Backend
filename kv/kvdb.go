@@ -1,6 +1,7 @@
 package kv
 
 import (
+    "github.com/BabyEngine/Backend/Debug"
     "github.com/boltdb/bolt"
 )
 type DB struct {
@@ -21,7 +22,9 @@ func (d *DB) Close()  {
     if d.db == nil {
         return
     }
-    d.db.Close()
+    if err := d.db.Close(); err != nil {
+        Debug.Log(err)
+    }
     d.db = nil
 }
 

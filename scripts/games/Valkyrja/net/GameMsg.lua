@@ -1,5 +1,3 @@
-require('games.Valkyrja.netd.pbdef')
-
 local pb = require "pb"
 local protoc = require "protobuf/protoc"
 

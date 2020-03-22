@@ -24,7 +24,7 @@ function NewPlayerActor(client)
         print('欢迎登录', table.tostring(msg))
         self.isAuth = true
         self.token = msg.token
-        netd.OnAuth(self.conn, self)
+        NetService.OnAuth(self.conn, self)
         local pushMsg
         pushMsg = function ()
             if self.isRelease then return end

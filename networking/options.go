@@ -1,6 +1,9 @@
 package networking
 
-import "context"
+import (
+    "context"
+    "time"
+)
 
 type OptionFunc func(options *Options)
 type Options struct {
@@ -8,6 +11,7 @@ type Options struct {
     Tag     string
     Address string
     Handler ClientHandler
+    TTL     time.Duration
     Ctx     context.Context
 }
 
@@ -41,9 +45,9 @@ func WithContext(c context.Context) OptionFunc {
     }
 }
 
-func (o *Options) Valid() error {
-    if o.Tag == "" || o.Handler == nil || o.Address == "" || o.Type == "" {
-        return ErrorOptionsInvalid
-    }
-    return nil
+func DefaultOptions() *Options {
+    opts := &Options{}
+    opts.TTL = time.Second * 30
+    opts.Ctx = context.TODO()
+    return opts
 }

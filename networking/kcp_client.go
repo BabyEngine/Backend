@@ -9,11 +9,14 @@ import (
 )
 
 type mKCPClient struct {
-    //Client
+    server     *mKCPServer
     id         int64
     conn       net.Conn
     opts       *Options
-    qps        uint32 // qps
+    qpsTCount  uint32 // transfer qps
+    qpsRCount  uint32 // receive qps
+    qpsT       uint32 // transfer qps
+    qpsR       uint32 // receive qps
     latency    uint32 // latency
     tx         uint64 // transfer bytes
     rx         uint64 // receive bytes
@@ -57,8 +60,10 @@ EXITLOOP:
                 break EXITLOOP
             }
             // 统计
-            atomic.AddUint64(&c.rp, 1)
-            atomic.AddUint64(&c.rp, uint64(pkg.DataLen))
+            atomic.AddUint64(&c.rp, 1)                   // 收到数据包总数
+            atomic.AddUint64(&c.rx, uint64(pkg.DataLen)) // 收到的字节总数
+            atomic.AddUint32(&c.qpsRCount, 1)            // 收到的QPS
+            c.server.onNetStat(0, 1, uint64(pkg.DataLen))
             c.lastSeen = time.Now()
             switch pkg.OpCode {
             case OPCODE_OPEN:
@@ -69,7 +74,6 @@ EXITLOOP:
                     val := binary.BigEndian.Uint32(pkg.Data)
                     c.latency = val
                 }
-                fmt.Println("on ping", c)
                 if _, err := WriteMessage(c.conn, OPCODE_PONG, nil); err != nil {
                     c.opts.Handler.OnError(c, err)
                     break EXITLOOP
@@ -107,7 +111,7 @@ func (c *mKCPClient) IsAlive() bool {
     if c.isStopRead {
         return false
     }
-    if time.Now().Sub(c.lastSeen) > time.Second*30 {
+    if time.Now().Sub(c.lastSeen) > c.opts.TTL {
         c.status = "timeout"
         c.Stop()
         return false
@@ -149,12 +153,18 @@ func (c *mKCPClient) String() string {
 }
 
 func (c *mKCPClient) SendData(data []byte) error {
-    _, err := WriteMessage(c.conn, OPCODE_DATA, data)
-    return err
+    return c.SendRaw(OPCODE_DATA, data)
 }
 func (c *mKCPClient) SendRaw(op OpCode, data []byte) error {
-    _, err := WriteMessage(c.conn, op, data)
-    return err
+    if n, err := WriteMessage(c.conn, op, data); err != nil {
+        atomic.AddUint64(&c.tp, 1)         // 发送的数据包总数
+        atomic.AddUint64(&c.tx, uint64(n)) // 发送的数据包总字节数
+        atomic.AddUint32(&c.qpsTCount, 1)  // 发送的QPS
+        c.server.onNetStat(1, 1, uint64(n))
+        return nil
+    } else {
+        return err
+    }
 }
 func (c *mKCPClient) Close() {
     c.Stop()

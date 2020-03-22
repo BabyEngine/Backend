@@ -22,7 +22,7 @@ type KCPGameServerHandler struct {
 }
 
 var (
-    enableDebug = false
+    EnableDebug = false
 )
 
 func (m *KCPGameServerHandler) Init() {
@@ -31,7 +31,7 @@ func (m *KCPGameServerHandler) Init() {
 }
 
 func (m *KCPGameServerHandler) OnNew(client Client) {
-    Debug.LogIff(enableDebug, "OnNew:%v", client)
+    Debug.LogIff(EnableDebug, "OnNew:%v", client)
     events.DefaultEventSystem.OnMainThread(func() {
         m.clients[client.Id()] = client
         L := m.L
@@ -46,7 +46,7 @@ func (m *KCPGameServerHandler) OnNew(client Client) {
 }
 
 func (m *KCPGameServerHandler) OnData(client Client, data []byte) {
-    Debug.LogIff(enableDebug, "OnData:%v %v", client, data)
+    Debug.LogIff(EnableDebug, "OnData:%v %v", client, data)
     if data == nil || len(data) == 0 {
         return
     }
@@ -65,7 +65,7 @@ func (m *KCPGameServerHandler) OnData(client Client, data []byte) {
 }
 
 func (h *KCPGameServerHandler) OnClose(client Client) {
-    Debug.LogIff(enableDebug, "OnClose:%v", client)
+    Debug.LogIff(EnableDebug, "OnClose:%v", client)
     h.CloseClient(client.Id())
     events.DefaultEventSystem.OnMainThread(func() {
         L := h.L
@@ -80,7 +80,7 @@ func (h *KCPGameServerHandler) OnClose(client Client) {
 }
 
 func (h *KCPGameServerHandler) OnError(client Client, err error) {
-    Debug.LogIff(enableDebug, "OnError:%v %v", client, err)
+    Debug.LogIff(EnableDebug, "OnError:%v %v", client, err)
     events.DefaultEventSystem.OnMainThread(func() {
         L := h.L
         L.RawGeti(lua.LUA_REGISTRYINDEX, h.refError)
@@ -95,7 +95,7 @@ func (h *KCPGameServerHandler) OnError(client Client, err error) {
 
 }
 func (h *KCPGameServerHandler) OnRequest(client Client, data []byte) []byte {
-    Debug.LogIff(enableDebug, "OnRequest:%v %v", client, data)
+    Debug.LogIff(EnableDebug, "OnRequest:%v %v", client, data)
     var (
         wg     sync.WaitGroup
         result []byte
@@ -150,12 +150,16 @@ func (h *KCPGameServerHandler) BindFunc(name string, ref int) {
 
 func (h *KCPGameServerHandler) SendClientData(clientId int64, data []byte) {
     if cli, ok := h.clients[clientId]; ok {
-        cli.SendData(data)
+        if err := cli.SendData(data); err != nil {
+            Debug.Log(err)
+        }
     }
 }
 func (h *KCPGameServerHandler) SendClientRawData(clientId int64, op OpCode, data []byte) {
     if cli, ok := h.clients[clientId]; ok {
-        cli.SendRaw(op, data)
+        if err := cli.SendRaw(op, data); err != nil {
+            Debug.Log(err)
+        }
     }
 }
 
@@ -163,38 +167,4 @@ func (h *KCPGameServerHandler) CloseClient(clientId int64) {
     if cli, ok := h.clients[clientId]; ok {
         cli.Close()
     }
-}
-
-func newKCP(L *lua.State, address string, tag string) ClientHandler {
-    // 主服务器
-    h := &KCPGameServerHandler{}
-    h.L = L
-    h.Init()
-
-    go func() {
-        if err := Listen(
-            WithType("kcp"),
-            WithTag(tag),
-            WithAddress(address),
-            WithContext(h.ctx),
-            WithHandler(h)); err != nil {
-        }
-    }()
-
-    return h
-}
-
-func Listen(options ...OptionFunc) error {
-    opts := &Options{}
-    for _, cb := range options {
-        cb(opts)
-    }
-    if opts.Ctx == nil {
-        opts.Ctx = context.TODO()
-    }
-    switch opts.Type {
-    case "kcp":
-        return KCPListenAndServe(opts)
-    }
-    return ErrorOptionsInvalid
 }
