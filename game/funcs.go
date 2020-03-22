@@ -17,7 +17,9 @@ func gInvoke(L *lua.State) int {
             events.DefaultEventSystem.OnMainThread(func() {
                 L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
                 if L.Type(-1) == lua.LUA_TFUNCTION {
-                    L.Call(0, 0)
+                    if err := L.Call(0, 0); err != nil {
+                        Debug.Log(err)
+                    }
                 }
                 L.Unref(lua.LUA_REGISTRYINDEX, ref)
             })
@@ -29,7 +31,9 @@ func gInvoke(L *lua.State) int {
         events.DefaultEventSystem.OnMainThreadDelay(delay, func() {
             L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
             if L.Type(-1) == lua.LUA_TFUNCTION {
-                L.Call(0, 0)
+                if err := L.Call(0, 0); err != nil {
+                    Debug.Log(err)
+                }
             }
             L.Unref(lua.LUA_REGISTRYINDEX, ref)
         })
@@ -116,7 +120,7 @@ func gAddUpdateFunc(L *lua.State) int {
     return 0
 }
 // 设置update帧率
-func gApplicationSetFPS(L *lua.State) int {
+func gSetFPS(L *lua.State) int {
     fps := L.ToInteger(1)
     events.DefaultEventSystem.SetFPS(fps)
     return 0

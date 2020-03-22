@@ -26,25 +26,16 @@ func (app *Application) Init(L *lua.State) {
     app.L = L
     app.servers = make(map[interface{}]networking.ClientHandler)
     app.apiMap = make(map[string]func(state *lua.State) int)
-    app.apiMap["Invoke"] = gInvoke
-    app.apiMap["Exit"] = gExit
-    app.apiMap["StartNetServer"] = gStartNetServer
-    app.apiMap["StopNetServer"] = gStopNetServer
-    app.apiMap["BindNetServer"] = gBindNetServer
-    app.apiMap["SendNetData"] = gSendNetData
-    app.apiMap["CloseNetClient"] = gCloseNetClient
-    app.apiMap["RedirectNetClient"] = gRedirectNetClient
-    app.apiMap["AddUpdateFunc"] = gAddUpdateFunc
-    app.apiMap["ApplicationSetFPS"] = gApplicationSetFPS
-    //app.apiMap["print"] = gPrint
-    app.apiMap["AppLog"] = gAppLog
 
     // 创建全局 BabyEngine 表
     L.CreateTable(0, 1)
     L.SetGlobal("BabyEngine")
+    // init App
+    initModApp(L)
     // KV 表
     initModKV(L)
-    // TODO Net 表
+    // Net 表
+    initModNet(L)
 
     // 导出接口
     for k, v := range app.apiMap {
@@ -57,7 +48,7 @@ func (app *Application) Init(L *lua.State) {
     initLuaCode := `
 package.path=package.path .. ';./framework/?.lua'
 require 'framework.init'
-AddUpdateFunc(function()
+BabyEngine.App.AddUpdateFunc(function()
     LooperManager.UpdateFunc()
     LooperManager.FixedUpdateFunc()
     LooperManager.LateUpdateFunc()
@@ -73,7 +64,7 @@ print=function(...)
     if __log_trace__ then
         msg = msg .. '\n' .. debug.traceback()
     end
-    AppLog(msg)
+    BabyEngine.App.Log(msg)
 end
 
 `
@@ -121,7 +112,9 @@ func (app *Application) Start() {
         for _, ref := range refs {
             L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
             if L.IsFunction(-1) {
-                L.Call(0, 0)
+                if err := L.Call(0, 0); err != nil {
+                    Debug.Log(err)
+                }
             }
         }
     }

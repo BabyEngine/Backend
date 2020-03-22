@@ -10,13 +10,13 @@ function net.NewKCPBinaryServer(address, tag)
             conn = conn,
         }
         function cli.Send(data)
-            SendNetData(ptr, cli.conn, data)
+            BabyEngine.Net.Send(ptr, cli.conn, data)
         end
         function cli.Close()
-            CloseNetClient(ptr, cli)
+            BabyEngine.Net.Close(ptr, cli)
         end
         function cli.Redirect(address)
-            RedirectNetClient(ptr, cli, address)
+            BabyEngine.Net.Redirect(ptr, cli, address)
         end
         clients[conn] = cli
         if not self.OnNew then return end
@@ -49,17 +49,17 @@ function net.NewKCPBinaryServer(address, tag)
         return self.OnRequest(cli, data)
     end
     function self.Start( )
-        ptr = StartNetServer('kcp', address, tag)
-        BindNetServer(ptr, "new",  onNew)
-        BindNetServer(ptr, "close",  onClose)
-        BindNetServer(ptr, "error",  onError)
-        BindNetServer(ptr, "data",  onData)
-        BindNetServer(ptr, "request",  onRequest)
+        ptr = BabyEngine.Net.Start('kcp', address, tag)
+        BabyEngine.Net.Bind(ptr, "new",  onNew)
+        BabyEngine.Net.Bind(ptr, "close",  onClose)
+        BabyEngine.Net.Bind(ptr, "error",  onError)
+        BabyEngine.Net.Bind(ptr, "data",  onData)
+        BabyEngine.Net.Bind(ptr, "request",  onRequest)
     end
 
     function self.Stop()
         if ptr then
-            StopNetServer(ptr)
+            BabyEngine.Net.Stop(ptr)
             ptr = nil
         end
     end

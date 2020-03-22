@@ -1,6 +1,6 @@
 print('女武神启动')
 
-ApplicationSetFPS(1)
+BabyEngine.App.SetFPS(1)
 
 require('games.Valkyrja.netd.GameMsg')
 require('games.Valkyrja.player.PlayerActor')

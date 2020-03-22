@@ -23,8 +23,11 @@ end
 
 function GameMsg.encode( name, t )
     local obj = {
-        action=name,
+        action = name,
     }
+    if t and ParseMap[name] then
+        obj.data = pb.encode(ParseMap[name], t)
+    end
     return pb.encode('GameMessage', obj)
 end
 

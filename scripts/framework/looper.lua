@@ -13,7 +13,7 @@ local delayCallbacks = {}
 local function onUpdate()
     local keep ={}
     for i,v in ipairs(delayCallbacks) do
-        if Time.time > v.time then
+        if Time.time >= v.time then
             v.cb()
         else
             table.insert(keep, v)

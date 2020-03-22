@@ -20,17 +20,14 @@ function netd.startGameServer( addr )
     end
 
     server.OnClose = function ( cli )
-        print('连接关闭===', cli)
         local player = nil
         player = UnAuthConn[cli]
         if player then
-            print(11111)
             UnAuthConn[cli] = nil
             player.Release()
         end
         player = AuthConn[cli]
         if player then
-            print(22222, table.tostring(player))
             AuthConn[cli] = nil
             player.Release()
         end
@@ -40,9 +37,11 @@ function netd.startGameServer( addr )
         -- print('收到数据', table.tostring(cli), tostring(data))
         if UnAuthConn[cli] then
             UnAuthConn[cli].OnMessage(data)
+            return
         end
         if AuthConn[cli] then
             AuthConn[cli].OnMessage(data)
+            return
         end
     end
 

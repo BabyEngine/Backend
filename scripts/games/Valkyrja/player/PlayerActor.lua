@@ -31,7 +31,6 @@ function NewPlayerActor(client)
             local msg = GameMsg.encode('game.login', {token='狗子'})
             self.conn.Send(msg)
             Looper.AfterFunc(2, pushMsg)
-            print('going to send')
         end
         pushMsg()
     end

@@ -22,7 +22,7 @@ type KCPGameServerHandler struct {
 }
 
 var (
-    enableDebug = true
+    enableDebug = false
 )
 
 func (m *KCPGameServerHandler) Init() {
@@ -38,7 +38,9 @@ func (m *KCPGameServerHandler) OnNew(client Client) {
         L.RawGeti(lua.LUA_REGISTRYINDEX, m.refNew)
         if L.Type(-1) == lua.LUA_TFUNCTION {
             L.PushInteger(client.Id())
-            L.Call(1, 0)
+            if err := L.Call(1, 0); err != nil {
+                Debug.Log(err)
+            }
         }
     })
 }
@@ -55,7 +57,9 @@ func (m *KCPGameServerHandler) OnData(client Client, data []byte) {
             L.PushInteger(client.Id())
             L.PushBytes(data)
 
-            L.Call(2, 0)
+            if err := L.Call(2, 0); err != nil {
+                Debug.Log(err)
+            }
         }
     })
 }
@@ -68,7 +72,9 @@ func (h *KCPGameServerHandler) OnClose(client Client) {
         L.RawGeti(lua.LUA_REGISTRYINDEX, h.refClose)
         if L.Type(-1) == lua.LUA_TFUNCTION {
             L.PushInteger(client.Id())
-            L.Call(1, 0)
+            if err := L.Call(1, 0); err != nil {
+                Debug.Log(err)
+            }
         }
     })
 }
@@ -81,7 +87,9 @@ func (h *KCPGameServerHandler) OnError(client Client, err error) {
         if L.Type(-1) == lua.LUA_TFUNCTION {
             L.PushInteger(client.Id())
             L.PushString(fmt.Sprint(err))
-            L.Call(2, 0)
+            if err := L.Call(2, 0); err != nil {
+                Debug.Log(err)
+            }
         }
     })
 
@@ -103,8 +111,11 @@ func (h *KCPGameServerHandler) OnRequest(client Client, data []byte) []byte {
         if L.Type(-1) == lua.LUA_TFUNCTION {
             L.PushInteger(client.Id())
             L.PushBytes(data)
-            L.Call(2, 1)
-            result = L.ToBytes(1)
+            if err := L.Call(2, 1); err != nil {
+                Debug.Log(err)
+            } else {
+                result = L.ToBytes(1)
+            }
         }
         wg.Done()
     })
