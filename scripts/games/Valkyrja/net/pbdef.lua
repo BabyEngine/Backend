@@ -14,4 +14,11 @@ message CommonMessage {
 
 }
 
+message ResponseCommon {
+  required int64  code = 1;
+  required string msg  = 2;
+}
+
+
+
 ]]

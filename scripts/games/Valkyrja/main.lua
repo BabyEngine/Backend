@@ -8,7 +8,7 @@ require('games.Valkyrja.misc.db')
 require('games.Valkyrja.player.PlayerActor')
 
 -- 设置update频率
-BabyEngine.App.SetFPS(1)
+BabyEngine.App.SetFPS(60)
 -- 监听服务器端口
 NetService.startGameServer(":8087")
 

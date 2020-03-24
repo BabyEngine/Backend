@@ -13,7 +13,7 @@ function GameMsg.decode( data )
         if ParseMap[rs.action] then
             return rs.action, pb.decode(ParseMap[rs.action], rs.data)
         end
-        return rs, nil
+        return rs.action, nil
     end
     return
 end
@@ -29,4 +29,5 @@ function GameMsg.encode( name, t )
     return pb.encode('GameMessage', obj)
 end
 
-ParseMap['game.login'] = 'RequestLoginMessage'
+ParseMap['req.login'] = 'RequestLoginMessage'
+ParseMap['rsp.common'] = 'ResponseCommon'
