@@ -45,9 +45,8 @@ function NewPlayerActor(client)
     end
 
     self.messageHandler['req.battle.start'] = function(msg, respFunc)
-        print('开始战斗', self.playerInfo)
+        print('开始战斗', table.insert(self.playerInfo))
         respFunc(GameMsg.encode('rsp.common', {code=0, msg=errors.OK}))
-        print('xxxx')
     end
 
     return self
