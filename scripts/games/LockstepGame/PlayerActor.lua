@@ -4,6 +4,9 @@ function NewPlayerActor(id, client)
         conn = client,
     }
 
+    function self.OnPlayingMessage(msg)
+        print('player playing message:', table.tostring(msg))
+    end
 
     return self
 end

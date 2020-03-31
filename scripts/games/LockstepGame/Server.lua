@@ -4,6 +4,7 @@ local protoc = require "protobuf/protoc"
 if not pb.type"GameMessage" then
     protoc:load(PBDefine)
 end
+local players = {}
 NetService = {}
 -- 游戏消息服务器
 function NetService.startGameServer( addr )
@@ -12,6 +13,7 @@ function NetService.startGameServer( addr )
     server.OnNew = function ( cli )
         -- 新连接进来的玩家放到未认证列表, 10秒内没有认证则踢出服务器
         local player = NewPlayerActor(cli)
+        players[cli] = player
     end
 
     server.OnClose = function ( cli )
@@ -35,11 +37,18 @@ function NetService.startGameServer( addr )
             respFunc(data)
         elseif req.action == 'createRoom' then
             local room = NewRoom()
+            print('create room', room.id)
             local data = pb.encode('RespMessage', {code=0, msg='创建成功['..tostring(room.id)..']'})
             respFunc(data)
         elseif req.action == 'joinRoom' then
             local info = pb.decode('JoinRoom', req.data)
             local room = JoinRoom(info.roomId, info.playerId, cli)
+
+            local player = players[cli]
+            if player then
+                player.room = room
+            end
+
             print('加入房间', table.tostring(info))
             local data
             if room then
@@ -47,6 +56,14 @@ function NetService.startGameServer( addr )
             else
                 data = pb.encode('RespMessage', {code=-1, msg='房间不存在'})
             end
+            respFunc(data)
+        elseif req.action == 'playing' then
+            local msg = pb.decode('PlayingMessage', req.data)
+            local player = players[cli]
+            if player then
+                player.OnPlayingMessage(msg)
+            end
+            local data = pb.encode('RespMessage', {code=0, msg='ok'})
             respFunc(data)
         else
             print('不支持请求', req.action)

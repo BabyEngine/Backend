@@ -1,6 +1,6 @@
 print('欢迎来到游戏世界')
 
-ApplicationSetFPS(2)
+BabyEngine.App.SetFPS(60)
 
 -- 启动NameServer
 -- 客户端链接来后, 立刻把它分配到对应服务器上, 根据负载进行分流

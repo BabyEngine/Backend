@@ -33,5 +33,9 @@ message JoinRoom {
     required int64 playerId = 2;
 }
 
+message PlayingMessage {
+    required int64 cmd   = 1;
+}
+
 
 ]]
