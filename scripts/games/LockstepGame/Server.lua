@@ -15,7 +15,11 @@ function NetService.startGameServer( addr )
     end
 
     server.OnClose = function ( cli )
-
+        local player = GetPlayer(cli)
+        if player then
+            player.Release()
+            print('玩家释放', cli)
+        end
     end
 
     server.OnData = function ( cli, data )

@@ -9,6 +9,12 @@ function NewPlayerActor(conn)
     function self.OnPlayingMessage(msg)
         print('player playing message:', table.tostring(msg))
     end
+
+    function self.Release()
+        LeaveRoom(conn)
+        players[conn] = nil
+    end
+
     players[conn] = self
     return self
 end
