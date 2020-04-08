@@ -243,7 +243,7 @@ func (h *KCPGameServerHandler) BindFunc(name string, ref int) {
     case "data":
         h.refData = ref
     case "error":
-        h.refError = ref
+        h.refError = ref    
     case "request":
         h.refRequest = ref
     }
