@@ -51,7 +51,7 @@ func StartNetServer(L *lua.State, netType string, address string, tag string) ne
     app := GetApplication(L)
     switch netType {
     case "kcp":
-        h := &KCPGameServerHandler{}
+        h := &MessageServerHandler{}
         h.L = L
         h.Init(app)
         // 配置 Server
@@ -66,18 +66,34 @@ func StartNetServer(L *lua.State, netType string, address string, tag string) ne
         }()
 
         return h
+    case "ws":
+        h := &MessageServerHandler{}
+        h.L = L
+        h.Init(app)
+        // 配置 Server
+        go func() {
+            if err := networking.ListenAndServe(
+                networking.WithType("ws"),
+                networking.WithTag(tag),
+                networking.WithAddress(address),
+                networking.WithContext(h.ctx),
+                networking.WithHandler(h)); err != nil {
+            }
+        }()
+
+        return h
     }
     return nil
 }
 
 func BindNetServerFunc(L *lua.State, p interface{}, name string, ref int) {
-    s := p.(*KCPGameServerHandler)
+    s := p.(*MessageServerHandler)
     L.GetGlobal("A")
     s.BindFunc(name, ref)
 }
 
 func SendNetData(L *lua.State, p interface{}, cliId int64, data []byte) {
-    s := p.(*KCPGameServerHandler)
+    s := p.(*MessageServerHandler)
     if s == nil {
         return
     }
@@ -85,7 +101,7 @@ func SendNetData(L *lua.State, p interface{}, cliId int64, data []byte) {
 }
 
 func CloseClient(L *lua.State, p interface{}, cliId int64) {
-    s := p.(*KCPGameServerHandler)
+    s := p.(*MessageServerHandler)
     if s == nil {
         return
     }
@@ -93,14 +109,14 @@ func CloseClient(L *lua.State, p interface{}, cliId int64) {
 }
 
 func SendNetRawData(L *lua.State, p interface{}, cliId int64, op networking.OpCode, data []byte) {
-    s := p.(*KCPGameServerHandler)
+    s := p.(*MessageServerHandler)
     if s == nil {
         return
     }
     s.SendClientRawData(cliId, op, data)
 }
 
-type KCPGameServerHandler struct {
+type MessageServerHandler struct {
     app        *Application
     ctx        context.Context
     cancel     func()
@@ -117,13 +133,13 @@ var (
     EnableDebug = false
 )
 
-func (h *KCPGameServerHandler) Init(app *Application) {
+func (h *MessageServerHandler) Init(app *Application) {
     h.app = app
     h.ctx, h.cancel = context.WithCancel(context.Background())
     h.clients = make(map[int64]networking.Client)
 }
 
-func (m *KCPGameServerHandler) OnNew(client networking.Client) {
+func (m *MessageServerHandler) OnNew(client networking.Client) {
     Debug.LogIff(EnableDebug, "OnNew:%v", client)
     m.app.eventSys.
         OnMainThread(func() {
@@ -139,7 +155,7 @@ func (m *KCPGameServerHandler) OnNew(client networking.Client) {
         })
 }
 
-func (h *KCPGameServerHandler) OnData(client networking.Client, data []byte) {
+func (h *MessageServerHandler) OnData(client networking.Client, data []byte) {
     Debug.LogIff(EnableDebug, "OnData:%v %v", client, data)
     if data == nil || len(data) == 0 {
         return
@@ -159,7 +175,7 @@ func (h *KCPGameServerHandler) OnData(client networking.Client, data []byte) {
         })
 }
 
-func (h *KCPGameServerHandler) OnClose(client networking.Client) {
+func (h *MessageServerHandler) OnClose(client networking.Client) {
     Debug.LogIff(EnableDebug, "OnClose:%v", client)
     h.CloseClient(client.Id())
     h.app.eventSys.
@@ -175,7 +191,7 @@ func (h *KCPGameServerHandler) OnClose(client networking.Client) {
         })
 }
 
-func (h *KCPGameServerHandler) OnError(client networking.Client, err error) {
+func (h *MessageServerHandler) OnError(client networking.Client, err error) {
     Debug.LogIff(EnableDebug, "OnError:%v %v", client, err)
     h.app.eventSys.
         OnMainThread(func() {
@@ -191,7 +207,7 @@ func (h *KCPGameServerHandler) OnError(client networking.Client, err error) {
         })
 
 }
-func (h *KCPGameServerHandler) OnRequest(client networking.Client, data []byte) []byte {
+func (h *MessageServerHandler) OnRequest(client networking.Client, data []byte) []byte {
     Debug.LogIff(EnableDebug, "OnRequest:%v %v", client, data)
     var (
         wg     sync.WaitGroup
@@ -224,7 +240,7 @@ func (h *KCPGameServerHandler) OnRequest(client networking.Client, data []byte) 
     return result
 }
 
-func (h *KCPGameServerHandler) Stop() {
+func (h *MessageServerHandler) Stop() {
     refs := []int{h.refNew, h.refClose, h.refError, h.refData, h.refRequest}
     for _, ref := range refs {
         if ref != 0 {
@@ -234,7 +250,7 @@ func (h *KCPGameServerHandler) Stop() {
     h.cancel()
 }
 
-func (h *KCPGameServerHandler) BindFunc(name string, ref int) {
+func (h *MessageServerHandler) BindFunc(name string, ref int) {
     switch name {
     case "new":
         h.refNew = ref
@@ -249,14 +265,14 @@ func (h *KCPGameServerHandler) BindFunc(name string, ref int) {
     }
 }
 
-func (h *KCPGameServerHandler) SendClientData(clientId int64, data []byte) {
+func (h *MessageServerHandler) SendClientData(clientId int64, data []byte) {
     if cli, ok := h.clients[clientId]; ok {
         if err := cli.SendData(data); err != nil {
             Debug.Log(err)
         }
     }
 }
-func (h *KCPGameServerHandler) SendClientRawData(clientId int64, op networking.OpCode, data []byte) {
+func (h *MessageServerHandler) SendClientRawData(clientId int64, op networking.OpCode, data []byte) {
     if cli, ok := h.clients[clientId]; ok {
         if err := cli.SendRaw(op, data); err != nil {
             Debug.Log(err)
@@ -264,7 +280,7 @@ func (h *KCPGameServerHandler) SendClientRawData(clientId int64, op networking.O
     }
 }
 
-func (h *KCPGameServerHandler) CloseClient(clientId int64) {
+func (h *MessageServerHandler) CloseClient(clientId int64) {
     if cli, ok := h.clients[clientId]; ok {
         cli.Close()
     }

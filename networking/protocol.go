@@ -28,7 +28,7 @@ type Packet struct {
     DataLen uint32
 }
 
-func WriteMessage(conn net.Conn, op OpCode, data []byte) (int, error) {
+func BuildMessage(op OpCode, data []byte) []byte {
     var (
         buff = make([]byte, 4)
     )
@@ -38,7 +38,36 @@ func WriteMessage(conn net.Conn, op OpCode, data []byte) (int, error) {
 
     binary.BigEndian.PutUint32(buff, uint32(len(data)))
     buff[0] = uint8(op) // data flag
-    return conn.Write(bytes.Join([][]byte{buff, data}, []byte{}))
+    return bytes.Join([][]byte{buff, data}, []byte{})
+}
+
+func WriteMessage(conn net.Conn, op OpCode, data []byte) (int, error) {
+    bin := BuildMessage(op, data)
+    return conn.Write(bin)
+}
+
+func ParseMessage(data []byte) (*Packet, error) {
+    var (
+        buff = make([]byte, 4)
+        pkg  Packet
+    )
+    copy(buff, data)
+    op := OpCode(buff[0])
+
+    buff[0] = 0
+    bodyLen := binary.BigEndian.Uint32(buff)
+    // limit size
+    if bodyLen > 16*1024*1024 {
+        // todo Too large Message
+        return &pkg, ErrorMessageTooLarge
+    }
+    n := len(data) - 4
+    buff = make([]byte, bodyLen)
+    copy(buff, data[4:])
+    pkg.Data = buff
+    pkg.DataLen = uint32(n)
+    pkg.OpCode = op
+    return &pkg, nil
 }
 
 func ReadMessage(conn net.Conn) (*Packet, error) {

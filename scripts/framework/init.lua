@@ -6,3 +6,4 @@ require('framework.looper')
 require('framework.kv.db')
 
 require('framework.net.KcpServer')
+require('framework.net.WebsocketServer')

@@ -39,3 +39,10 @@ end
 
 startNameServer()
 startGameServer()
+
+-- websocket服务器
+function startWebsocketServer()
+    net.NewWebsocketBinaryServer(":8088", "websocket服务器")
+end
+
+startWebsocketServer()
