@@ -30,7 +30,7 @@ function startGameServer( addr )
     end
 
     server.OnRequest = function ( cli, data )
-        return "好了, 朕知道了"
+        return "Okay, Got it"
     end
 
     server.Start()
@@ -42,7 +42,21 @@ startGameServer()
 
 -- websocket服务器
 function startWebsocketServer()
-    net.NewWebsocketBinaryServer(":8088", "websocket服务器")
+    local server = net.NewWebsocketBinaryServer(":8089", "websocket服务器")
+    server.OnNew = function ( cli )
+        print('新连接', cli)
+    end
+
+    server.OnClose = function ( cli )
+        print('关闭连接', cli)
+    end
+
+    server.OnData = function ( cli, data )
+        print('收到数据', cli, tostring(data))
+        cli.Send('echo:'..tostring(data))
+    end
+
+    server.Start()
 end
 
 startWebsocketServer()

@@ -4,21 +4,21 @@ import (
     "github.com/BabyEngine/Backend/Debug"
     "github.com/boltdb/bolt"
 )
-type DB struct {
+type KVDB struct {
     db *bolt.DB
 }
-func OpenKVDB(path string) (*DB, error) {
+func OpenKVDB(path string) (*KVDB, error) {
     db, err := bolt.Open(path, 0600, nil)
     if err != nil {
         return nil, err
     }
 
-    d := &DB{}
+    d := &KVDB{}
     d.db = db
     return d, nil
 }
 
-func (d *DB) Close()  {
+func (d *KVDB) Close()  {
     if d.db == nil {
         return
     }
@@ -28,7 +28,7 @@ func (d *DB) Close()  {
     d.db = nil
 }
 
-func (d *DB) Update(bucketName string, key string, value []byte) error {
+func (d *KVDB) Update(bucketName string, key string, value []byte) error {
     err := d.db.Update(func(tx *bolt.Tx) error {
         bk, err := tx.CreateBucketIfNotExists([]byte(bucketName))
         if err != nil {
@@ -39,7 +39,7 @@ func (d *DB) Update(bucketName string, key string, value []byte) error {
     return err
 }
 
-func (d *DB) View(bucketName string, key string, cb func([]byte, error))  {
+func (d *KVDB) View(bucketName string, key string, cb func([]byte, error))  {
     var (
         value []byte
     )
@@ -56,7 +56,7 @@ func (d *DB) View(bucketName string, key string, cb func([]byte, error))  {
     }()
 }
 
-func (d *DB) Foreach(bucketName string, cb func(string, []byte))  {
+func (d *KVDB) Foreach(bucketName string, cb func(string, []byte))  {
     d.db.View(func(tx *bolt.Tx) error {
         b := tx.Bucket([]byte(bucketName))
         if b == nil {
@@ -70,7 +70,7 @@ func (d *DB) Foreach(bucketName string, cb func(string, []byte))  {
     })
 }
 
-func (d *DB) RemoveValue(bucketName string, key string)  {
+func (d *KVDB) RemoveValue(bucketName string, key string)  {
     d.db.Update(func(tx *bolt.Tx) error {
         bk := tx.Bucket([]byte(bucketName))
         if bk == nil {
@@ -80,7 +80,7 @@ func (d *DB) RemoveValue(bucketName string, key string)  {
         return nil
     })
 }
-func (d *DB) RemoveBucket(bucketName string)  {
+func (d *KVDB) RemoveBucket(bucketName string)  {
     d.db.Update(func(tx *bolt.Tx) error {
         bk := tx.Bucket([]byte(bucketName))
         if bk == nil {

@@ -55,7 +55,7 @@ func gKVOpen(L *lua.State) int {
 //关闭
 func gKVClose(L *lua.State) int {
     ptr := L.ToGoStruct(1)
-    if db, ok := ptr.(*kv.DB); ok {
+    if db, ok := ptr.(*kv.KVDB); ok {
         db.Close()
     }
     return 0
@@ -67,7 +67,7 @@ func gKVPut(L *lua.State) int {
     bucketName := L.ToString(2)
     key := L.ToString(3)
     value := L.ToBytes(4)
-    if db, ok := ptr.(*kv.DB); ok {
+    if db, ok := ptr.(*kv.KVDB); ok {
         if err := db.Update(bucketName, key, value); err == nil {
             L.PushNil()
             L.PushBoolean(true)
@@ -89,7 +89,7 @@ func gKVGet(L *lua.State) int {
     bucketName := L.ToString(2)
     key := L.ToString(3)
     cbRef := L.Ref(lua.LUA_REGISTRYINDEX)
-    if db, ok := ptr.(*kv.DB); ok {
+    if db, ok := ptr.(*kv.KVDB); ok {
         db.View(bucketName, key, func(i []byte, err error) {
             app.eventSys.OnMainThread(func() {
                 defer L.Unref(lua.LUA_REGISTRYINDEX, cbRef)
@@ -120,7 +120,7 @@ func gKVRemoveValue(L *lua.State) int {
     ptr := L.ToGoStruct(1)
     bucketName := L.ToString(2)
     key := L.ToString(3)
-    if db, ok := ptr.(*kv.DB); ok {
+    if db, ok := ptr.(*kv.KVDB); ok {
         db.RemoveValue(bucketName, key)
     }
     return 0
@@ -128,7 +128,7 @@ func gKVRemoveValue(L *lua.State) int {
 func gKVRemoveBucket(L *lua.State) int {
     ptr := L.ToGoStruct(1)
     bucketName := L.ToString(2)
-    if db, ok := ptr.(*kv.DB); ok {
+    if db, ok := ptr.(*kv.KVDB); ok {
         db.RemoveBucket(bucketName)
     }
     return 0

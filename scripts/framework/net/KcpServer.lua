@@ -49,7 +49,7 @@ function net.NewKCPBinaryServer(address, tag)
         self.OnRequest(cli, data, respFunc)
     end
     function self.Start( )
-        ptr = BabyEngine.Net.Start('kcp', address, tag)
+        ptr = BabyEngine.Net.Start('kcp', address, {tag=tag})
         BabyEngine.Net.Bind(ptr, "new",  onNew)
         BabyEngine.Net.Bind(ptr, "close",  onClose)
         BabyEngine.Net.Bind(ptr, "error",  onError)

@@ -55,15 +55,24 @@ func gInvoke(L *lua.State) int {
 func gStartNetServer(L *lua.State) int {
     netType := L.ToString(1)
     addr := L.ToString(2)
-    serverTag := "Backend"
-    if L.Type(3) == lua.LUA_TSTRING {
-        serverTag = L.ToString(3)
+    flags := map[string] string{}
+    if L.Type(-1) == lua.LUA_TTABLE {
+        L.PushNil()
+        for L.Next(-2) != 0 {
+            key := L.ToString(-2)
+            value := L.ToString(-1)
+            flags[key] = value
+            L.Pop(1)
+        }
+        L.Pop(1)
     }
+
     L.GetGlobal("AppContext")
     _app := L.ToGoStruct(-1)
     app:= _app.(*Application)
 
-    server := StartNetServer(L, netType, addr, serverTag)
+
+    server := StartNetServer(L, netType, addr, flags)
     app.SetNetServer(app, server)
 
     L.PushGoStruct(server)
@@ -141,7 +150,6 @@ func gSetFPS(L *lua.State) int {
 }
 // 覆盖lua print函数
 func gPrint(L *lua.State) int {
-
     nargs := L.GetTop()
     buf := bytes.NewBufferString(L.StackTraceString())
     for i := 1; i <= nargs; i++ {

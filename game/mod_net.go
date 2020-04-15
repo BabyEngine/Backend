@@ -47,8 +47,10 @@ func initModNet(L *lua.State) {
     L.SetTable(-3)
 }
 
-func StartNetServer(L *lua.State, netType string, address string, tag string) networking.ClientHandler {
+func StartNetServer(L *lua.State, netType string, address string, flags map[string]string) networking.ClientHandler {
     app := GetApplication(L)
+    tag := flags["tag"]
+    isRawMode := flags["raw"] == "true"
     switch netType {
     case "kcp":
         h := &MessageServerHandler{}
@@ -61,6 +63,7 @@ func StartNetServer(L *lua.State, netType string, address string, tag string) ne
                 networking.WithTag(tag),
                 networking.WithAddress(address),
                 networking.WithContext(h.ctx),
+                networking.WithRawMode(isRawMode),
                 networking.WithHandler(h)); err != nil {
             }
         }()
@@ -77,6 +80,7 @@ func StartNetServer(L *lua.State, netType string, address string, tag string) ne
                 networking.WithTag(tag),
                 networking.WithAddress(address),
                 networking.WithContext(h.ctx),
+                networking.WithRawMode(isRawMode),
                 networking.WithHandler(h)); err != nil {
             }
         }()

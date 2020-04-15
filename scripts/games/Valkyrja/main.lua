@@ -11,6 +11,3 @@ require('games.Valkyrja.player.PlayerActor')
 BabyEngine.App.SetFPS(60)
 -- 监听服务器端口
 NetService.startGameServer(":8087")
-
-print(table.tostring(BabyEngine))
-

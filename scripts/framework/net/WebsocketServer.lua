@@ -15,9 +15,9 @@ function net.NewWebsocketBinaryServer(address, tag)
         function cli.Close()
             BabyEngine.Net.Close(ptr, cli)
         end
-        function cli.Redirect(address)
-            BabyEngine.Net.Redirect(ptr, cli, address)
-        end
+        -- function cli.Redirect(address)
+        --     BabyEngine.Net.Redirect(ptr, cli, address)
+        -- end
         clients[conn] = cli
         if not self.OnNew then return end
         self.OnNew(cli)
@@ -49,7 +49,7 @@ function net.NewWebsocketBinaryServer(address, tag)
         self.OnRequest(cli, data, respFunc)
     end
     function self.Start( )
-        ptr = BabyEngine.Net.Start('ws', address, tag)
+        ptr = BabyEngine.Net.Start('ws', address, {tag=tag, raw='true'})
         BabyEngine.Net.Bind(ptr, "new",  onNew)
         BabyEngine.Net.Bind(ptr, "close",  onClose)
         BabyEngine.Net.Bind(ptr, "error",  onError)

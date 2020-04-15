@@ -6,6 +6,7 @@ import (
     "github.com/BabyEngine/Backend/events"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
+    "os"
     "sync"
     "time"
 )
@@ -39,6 +40,10 @@ func (app *Application) Init(L *lua.State) {
     initModKV(L)
     // Net 表
     initModNet(L)
+    // Redis
+    initModRedis(L)
+    //
+    injectArgs(L)
 
     // 导出接口
     for k, v := range app.apiMap {
@@ -74,6 +79,20 @@ end
     if err := L.DoString(initLuaCode); err != nil {
         fmt.Println(err)
     }
+}
+
+func injectArgs(L *lua.State) {
+    L.PushString("Args")
+    {
+        // 创建子表
+        L.CreateTable(0, 1)
+        for k, v := range os.Args {
+            L.PushInteger(int64(k+1))
+            L.PushString(v)
+            L.SetTable(-3)
+        }
+    }
+    L.SetTable(-3)
 }
 
 func (app *Application) Start() {

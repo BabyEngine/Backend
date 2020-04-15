@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/DGHeroin/golua v1.0.1
 	github.com/boltdb/bolt v1.3.1
+	github.com/go-redis/redis/v7 v7.2.0
 	github.com/gorilla/websocket v1.4.1
 	github.com/klauspost/cpuid v1.2.3 // indirect
 	github.com/klauspost/reedsolomon v1.9.3 // indirect

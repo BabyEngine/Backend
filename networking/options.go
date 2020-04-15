@@ -46,9 +46,9 @@ func WithContext(c context.Context) OptionFunc {
 	}
 }
 
-func WithRawMode() OptionFunc {
+func WithRawMode(b bool) OptionFunc {
 	return func(options *Options) {
-		options.IsRawMode = true
+		options.IsRawMode = b
 	}
 }
 

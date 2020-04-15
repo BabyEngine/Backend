@@ -33,7 +33,7 @@ func startApp() {
     L.OpenLibs()
     defer L.Close()
 
-    if len(os.Args) != 2 {
+    if len(os.Args) == 1 {
         Debug.Logf("no input file")
         return
     }
