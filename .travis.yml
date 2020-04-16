@@ -1,0 +1,33 @@
+language: go
+sudo: false
+env:
+  - GO111MODULE=on
+go:
+  - 1.13.x
+matrix:
+  include:
+    - os: linux
+    - os: osx
+      osx_image: xcode11.3
+    - os: windows
+before_script:
+  - go mod tidy
+  - FILE_NAME="$TRAVIS_OS_NAME"
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then FILE_NAME=windows.exe ; fi
+script:
+  - mkdir -p bin
+  - go build -o bin/GameApp-"$FILE_NAME" cmd/GameApp/main.go
+  - ls -al bin
+install:
+  - export GOPATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace:$GOPATH"
+  - export PATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace/bin:$PATH"
+deploy:
+  provider: releases
+  api_key:
+    secure: x9i3SbzwMWODTsW32hSLYfhAvj55AxjYT2YGoNmVtEvhrMq/P6/Y9EfRhr24nrIf8vspDiLnC59VHsAajyrotawmfNMRiZqKeVVFyafeYw0iGR4vJ3Z/xS3GD0FdYNQ/CYPLtmnvSeXRNv7SJXiIS/JczU36CX8sLCN20vZYk7aTvjfRrvvvcxrDqbuP3gnvcGvQR4fbP2CiIcxmmczItXapR1VkOpkj6Ybvw34Rd1Pf2g1QwnOvdCLcEAA8OMyFPbKkl8Q2U+ZToYEVLxKRZ1BNWAr643XtS8CFvMX1xqYPrnQihFqEhLdgaz4lOYVKpK2Bad+RHU+xEWzgVxnf2ejj54VeXJu0s81yOEE37ETKxQOS+5Y/+8SzNXNgxa75vy6aRxBrvo9ye/EtA1Y3KLcWcIXJd2DhM/UZ9vDoJbYr9op71vpSkmKksWbM1tbxSU/k0pMaHTNk+qmvBhZdUcdtUx8cTggb6LhLw00BgqFoJclNU52jVWPH2pDbMz9yeSyRwfP9hRx0irG8LurG0UZSMPud7/jVFoKbz+PxtadR+eaWXHbO/MuyoiC7sHWKcaBqhf4y48y71pXNwc4nwLz+pAwKBEbf/XSmQehqoFlh7lT0HrP+6LUsvDsenbTqOkFzlMvWhU3WrraqBvrDPF3G+w+ZY7Lj6qlKuAWAS7A=
+  file: bin/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: BabyEngine/Backend
+    tags: true
