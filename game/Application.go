@@ -55,7 +55,8 @@ func (app *Application) Init(L *lua.State) {
 
     initLuaCode := `
 package.path=package.path .. ';./framework/?.lua'
-require 'framework.init'
+pcall = pcall or unsafe_pcall
+pcall(require,'framework.init')
 BabyEngine.App.AddUpdateFunc(function()
     LooperManager.UpdateFunc()
     LooperManager.FixedUpdateFunc()
@@ -65,7 +66,6 @@ __log_trace__ = false
 local _print = print
 print=function(...)
     local msg = ''
-
     for k,v in pairs({...}) do
         msg = msg .. tostring(v) .. ' ' 
     end
