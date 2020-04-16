@@ -37,7 +37,7 @@ func NewEventSystem() *EventSystem {
 //)
 
 func (s *EventSystem) init() {
-    s.minSleepMs = 33
+    s.minSleepMs = 1000
     s.Reset()
 }
 

@@ -23,7 +23,9 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-    go enableHotRestart()
+    if os.Getenv("HotReload") == "true" {
+        go enableHotRestart()
+    }
     startApp()
 }
 
@@ -48,12 +50,17 @@ func startApp() {
 var (
     logChan = make(chan string, 100000)
 )
-
+func enableCors(w *http.ResponseWriter) {
+    (*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
 func enableHotRestart() {
+    Debug.Logf("Enable Hot Reload")
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        enableCors(&w)
         w.Write([]byte(HTTPData))
     })
     http.HandleFunc("/r", func(w http.ResponseWriter, r *http.Request) {
+        enableCors(&w)
         app.Stop()
         go startApp()
         w.Write([]byte(fmt.Sprintf("restart success %v", time.Now().Format(time.RFC3339))))
@@ -65,6 +72,7 @@ func enableHotRestart() {
 }
 
 func showLog(w http.ResponseWriter, r *http.Request) {
+    enableCors(&w)
     c, err := upgrader.Upgrade(w, r, nil)
     if err != nil {
         log.Print("upgrade:", err)
@@ -187,6 +195,21 @@ var (
         }).click();
     });
     $(function() {
+        $("#hotreload").click(function() {
+            var url = 'http://'+$("#wsaddr").val() + "/r";
+            const Http = new XMLHttpRequest();
+            Http.open("GET", url);
+            Http.send();
+console.log("xx");
+            Http.onreadystatechange = (e) => {
+                if (Http.readyState == 4) {
+                    appendLog(Http.responseText);
+                }
+            }
+        });
+    });
+
+    $(function() {
         $("#clean").click(function() {
             console.log('clean log');
             var container = $("#log_container");
@@ -205,6 +228,34 @@ var (
             $("#log_num").val(max_line);
         }).change();
     });
+
+    function appendLog(msg) {
+        console.log(msg);
+        var lines = msg.replace(/^\s+|\s+$/g, '').split("\n");
+        var container = $("#log_container");
+        var elemid = 'h_';
+        var lastfile = "";
+
+        if ($("#" + elemid, container).length) {
+            var elem = $("#" + elemid + ' div.lines', container);
+        } else {
+            var elem = $('<div/>', {id: elemid}).addClass("file").append($('<h3/>')).append($('<div/>').addClass('lines')).appendTo(container).find('div.lines');
+        }
+
+        // Currently we receive only one line of log each call, but assumptions is bad.
+        for (i = 0; i < lines.length; ++i) {
+            $('<div/>').addClass('line').text(lines[i]).prependTo(elem);
+        }
+
+        // Show last 25 records
+        var elemcount = $("div.line", elem).length;
+        if (elemcount > max_line) {
+            $("div.line", elem).slice(max_line-elemcount).remove();
+        }
+
+        // Move to top
+        $('#' + elemid).prependTo(container);
+    }
 
     function validateNumber(evt) {
         var e = evt || window.event;
@@ -240,6 +291,7 @@ var (
         ws://<input type="text" id="wsaddr" value="127.0.0.1:80" />
         <button id="wsconnect">Connect</button>
         <button id="clean">Clean log</button>
+        <button id="hotreload">Hot Reload</button>
         <label for="Name">Max Line:</label>
         <input type="" id="log_num" placeholder="text" onkeydown="validateNumber(event);" value="50"/>
     </div>

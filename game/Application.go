@@ -58,9 +58,11 @@ package.path=package.path .. ';./framework/?.lua'
 pcall = pcall or unsafe_pcall
 pcall(require,'framework.init')
 BabyEngine.App.AddUpdateFunc(function()
-    LooperManager.UpdateFunc()
-    LooperManager.FixedUpdateFunc()
-    LooperManager.LateUpdateFunc()
+    if LooperManager then
+        LooperManager.UpdateFunc()
+        LooperManager.FixedUpdateFunc()
+        LooperManager.LateUpdateFunc()
+    end
 end)
 __log_trace__ = false
 local _print = print
