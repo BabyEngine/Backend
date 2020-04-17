@@ -14,10 +14,10 @@ before_script:
   - go mod tidy
   - FILE_NAME="$TRAVIS_OS_NAME"
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then FILE_NAME=windows.exe ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cd scripts && tar cvfj ../bin/framework.tar framework; cd .. ; fi
 script:
   - mkdir -p bin
   - go build -o bin/GameApp-"$FILE_NAME" cmd/GameApp/main.go
-  - cd scripts && tar cvfj ../bin/framework.tar framework; cd ..
   - ls -alh ./
   - ls -alh bin
 install:
