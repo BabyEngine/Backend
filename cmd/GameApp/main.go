@@ -79,7 +79,7 @@ func runGetAction() {
     } else { // download version
         downloadUrl = fmt.Sprintf("https://github.com/BabyEngine/Backend/releases/download/%s/%s", version, packageName)
     }
-    debugging.Logf("downloadUrl: %s", downloadUrl)
+//    debugging.Logf("downloadUrl: %s", downloadUrl)
     resp, err := http.Get(downloadUrl)
     if err != nil {
        debugging.Logf("download error", err)
@@ -112,8 +112,6 @@ func runGetAction() {
       debugging.Logf("write file error:%v", err)
       return
     }
-
-    debugging.Logf("fname:%v", fname)
 
     if err := untar(fname, "./"); err != nil {
         debugging.Logf("%s", err)
