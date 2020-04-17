@@ -1,12 +1,15 @@
 package game
 
 import (
+    "bufio"
+    "bytes"
     "fmt"
     "github.com/BabyEngine/Backend/debugging"
     "github.com/BabyEngine/Backend/events"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
     "os"
+    "strings"
     "sync"
     "time"
 )
@@ -142,6 +145,43 @@ func (app *Application) Start() {
             }
         }
     }
+    // runtime cmd
+    go func() {
+        reader := bufio.NewReader(os.Stdin)
+        cmd := bytes.NewBufferString("")
+        var wgCmd sync.WaitGroup
+        for app.eventSys.IsRunning() {
+            if len(cmd.String()) == 0 {
+                fmt.Print("$: ")
+            } else {
+                fmt.Print(cmd.String())
+            }
+
+            text, _ := reader.ReadString('\n')
+            text = strings.TrimSpace(text)
+            if len(text) == 0 {
+                continue
+            }
+
+            if strings.HasSuffix(text, "\\") {
+                cmd.WriteString(strings.TrimSuffix(text, "\\") + "\n")
+                continue
+            }
+            cmd.WriteString(text)
+            wgCmd.Add(1)
+            go func(cmdStr string) {
+                app.eventSys.OnMainThread(func() {
+                    if err := L.DoString(cmdStr); err !=nil {
+                        debugging.Logf("%v", err)
+                    }
+                    wgCmd.Done()
+                })
+            }(cmd.String())
+            wgCmd.Wait()
+            cmd.Reset()
+        }
+    }()
+
     // Main Loop
     for app.eventSys.IsRunning() {
         app.eventSys.Update()
