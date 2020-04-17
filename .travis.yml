@@ -12,11 +12,11 @@ matrix:
     - os: windows
 before_script:
   - go mod tidy
+  - mkdir -p bin
   - FILE_NAME="$TRAVIS_OS_NAME"
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then FILE_NAME=windows.exe ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cd scripts && tar cvfj ../bin/framework.tar framework; cd .. ; fi
 script:
-  - mkdir -p bin
   - go build -o bin/GameApp-"$FILE_NAME" cmd/GameApp/main.go
   - ls -alh ./
   - ls -alh bin
