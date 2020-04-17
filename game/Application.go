@@ -2,7 +2,7 @@ package game
 
 import (
     "fmt"
-    "github.com/BabyEngine/Backend/Debug"
+    "github.com/BabyEngine/Backend/debugging"
     "github.com/BabyEngine/Backend/events"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
@@ -122,7 +122,7 @@ func (app *Application) Start() {
         }
         L.SetTop(0)
         if err := L.DoString(luaCode); err != nil {
-            Debug.Log(err, "\n", luaCode)
+            debugging.Log(err, "\n", luaCode)
         }
     }
     updateTimer()
@@ -137,7 +137,7 @@ func (app *Application) Start() {
             L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
             if L.IsFunction(-1) {
                 if err := L.Call(0, 0); err != nil {
-                    Debug.Log(err)
+                    debugging.Log(err)
                 }
             }
         }

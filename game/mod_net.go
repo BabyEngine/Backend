@@ -3,7 +3,7 @@ package game
 import (
     "context"
     "fmt"
-    "github.com/BabyEngine/Backend/Debug"
+    "github.com/BabyEngine/Backend/debugging"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
     "sync"
@@ -144,7 +144,7 @@ func (h *MessageServerHandler) Init(app *Application) {
 }
 
 func (m *MessageServerHandler) OnNew(client networking.Client) {
-    Debug.LogIff(EnableDebug, "OnNew:%v", client)
+    debugging.LogIff(EnableDebug, "OnNew:%v", client)
     m.app.eventSys.
         OnMainThread(func() {
             m.clients[client.Id()] = client
@@ -153,14 +153,14 @@ func (m *MessageServerHandler) OnNew(client networking.Client) {
             if L.Type(-1) == lua.LUA_TFUNCTION {
                 L.PushInteger(client.Id())
                 if err := L.Call(1, 0); err != nil {
-                    Debug.Log(err)
+                    debugging.Log(err)
                 }
             }
         })
 }
 
 func (h *MessageServerHandler) OnData(client networking.Client, data []byte) {
-    Debug.LogIff(EnableDebug, "OnData:%v %v", client, data)
+    debugging.LogIff(EnableDebug, "OnData:%v %v", client, data)
     if data == nil || len(data) == 0 {
         return
     }
@@ -173,14 +173,14 @@ func (h *MessageServerHandler) OnData(client networking.Client, data []byte) {
                 L.PushBytes(data)
 
                 if err := L.Call(2, 0); err != nil {
-                    Debug.Log(err)
+                    debugging.Log(err)
                 }
             }
         })
 }
 
 func (h *MessageServerHandler) OnClose(client networking.Client) {
-    Debug.LogIff(EnableDebug, "OnClose:%v", client)
+    debugging.LogIff(EnableDebug, "OnClose:%v", client)
     h.CloseClient(client.Id())
     h.app.eventSys.
         OnMainThread(func() {
@@ -189,14 +189,14 @@ func (h *MessageServerHandler) OnClose(client networking.Client) {
             if L.Type(-1) == lua.LUA_TFUNCTION {
                 L.PushInteger(client.Id())
                 if err := L.Call(1, 0); err != nil {
-                    Debug.Log(err)
+                    debugging.Log(err)
                 }
             }
         })
 }
 
 func (h *MessageServerHandler) OnError(client networking.Client, err error) {
-    Debug.LogIff(EnableDebug, "OnError:%v %v", client, err)
+    debugging.LogIff(EnableDebug, "OnError:%v %v", client, err)
     h.app.eventSys.
         OnMainThread(func() {
             L := h.L
@@ -205,14 +205,14 @@ func (h *MessageServerHandler) OnError(client networking.Client, err error) {
                 L.PushInteger(client.Id())
                 L.PushString(fmt.Sprint(err))
                 if err := L.Call(2, 0); err != nil {
-                    Debug.Log(err)
+                    debugging.Log(err)
                 }
             }
         })
 
 }
 func (h *MessageServerHandler) OnRequest(client networking.Client, data []byte) []byte {
-    Debug.LogIff(EnableDebug, "OnRequest:%v %v", client, data)
+    debugging.LogIff(EnableDebug, "OnRequest:%v %v", client, data)
     var (
         wg     sync.WaitGroup
         result []byte
@@ -235,7 +235,7 @@ func (h *MessageServerHandler) OnRequest(client networking.Client, data []byte) 
                 L.PushBytes(data)
                 L.PushGoFunction(respFunc)
                 if err := L.Call(3, 0); err != nil {
-                    Debug.Log(err)
+                    debugging.Log(err)
                     wg.Done()
                 }
             }
@@ -272,14 +272,14 @@ func (h *MessageServerHandler) BindFunc(name string, ref int) {
 func (h *MessageServerHandler) SendClientData(clientId int64, data []byte) {
     if cli, ok := h.clients[clientId]; ok {
         if err := cli.SendData(data); err != nil {
-            Debug.Log(err)
+            debugging.Log(err)
         }
     }
 }
 func (h *MessageServerHandler) SendClientRawData(clientId int64, op networking.OpCode, data []byte) {
     if cli, ok := h.clients[clientId]; ok {
         if err := cli.SendRaw(op, data); err != nil {
-            Debug.Log(err)
+            debugging.Log(err)
         }
     }
 }

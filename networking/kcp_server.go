@@ -2,7 +2,7 @@ package networking
 
 import (
     "fmt"
-    "github.com/BabyEngine/Backend/Debug"
+    "github.com/BabyEngine/Backend/debugging"
     "github.com/xtaci/kcp-go"
     "net"
     "sync"
@@ -36,7 +36,7 @@ func (s *mKCPServer) Serve(address string) error {
     defer func() {
         if ln != nil {
             if err := ln.Close(); err != nil {
-                Debug.Log(err)
+                debugging.Log(err)
             }
         }
         ticker.Stop()
@@ -48,7 +48,7 @@ func (s *mKCPServer) Serve(address string) error {
             case <-s.opts.Ctx.Done():
                 if ln != nil {
                     if err := ln.Close(); err != nil {
-                        Debug.Log(err)
+                        debugging.Log(err)
                     }
                 }
                 ln = nil

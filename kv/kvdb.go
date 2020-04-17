@@ -1,7 +1,7 @@
 package kv
 
 import (
-    "github.com/BabyEngine/Backend/Debug"
+    "github.com/BabyEngine/Backend/debugging"
     "github.com/boltdb/bolt"
 )
 type KVDB struct {
@@ -23,7 +23,7 @@ func (d *KVDB) Close()  {
         return
     }
     if err := d.db.Close(); err != nil {
-        Debug.Log(err)
+        debugging.Log(err)
     }
     d.db = nil
 }

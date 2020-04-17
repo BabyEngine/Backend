@@ -2,7 +2,7 @@ package networking
 
 import (
     "fmt"
-    "github.com/BabyEngine/Backend/Debug"
+    "github.com/BabyEngine/Backend/debugging"
     "github.com/gorilla/websocket"
     "net/http"
     "sync"
@@ -26,7 +26,7 @@ type mWebsocketServer struct {
 func (s *mWebsocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     c, err := s.ws.Upgrade(w, r, nil)
     if err != nil {
-        Debug.Logf("upgrade:%v", err)
+        debugging.Logf("upgrade:%v", err)
         return
     }
     s.handleKCPConn(c)
@@ -44,7 +44,7 @@ func (s *mWebsocketServer) Init() {
 func (s *mWebsocketServer) Serve(address string) error {
     err := http.ListenAndServe(address, s)
     if err != nil {
-        Debug.Logf("%v", err)
+        debugging.Logf("%v", err)
     }
     return err
 }

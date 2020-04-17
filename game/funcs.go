@@ -3,7 +3,7 @@ package game
 import (
     "bytes"
     "fmt"
-    "github.com/BabyEngine/Backend/Debug"
+    "github.com/BabyEngine/Backend/debugging"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
 )
@@ -29,7 +29,7 @@ func gInvoke(L *lua.State) int {
                 L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
                 if L.Type(-1) == lua.LUA_TFUNCTION {
                     if err := L.Call(0, 0); err != nil {
-                        Debug.Log(err)
+                        debugging.Log(err)
                     }
                 }
                 L.Unref(lua.LUA_REGISTRYINDEX, ref)
@@ -43,7 +43,7 @@ func gInvoke(L *lua.State) int {
             L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
             if L.Type(-1) == lua.LUA_TFUNCTION {
                 if err := L.Call(0, 0); err != nil {
-                    Debug.Log(err)
+                    debugging.Log(err)
                 }
             }
             L.Unref(lua.LUA_REGISTRYINDEX, ref)
@@ -180,13 +180,13 @@ func gPrint(L *lua.State) int {
             buf.WriteString(fmt.Sprintf("%v", msg))
         }
     }
-    Debug.Log(buf)
+    debugging.Log(buf)
     return 0
 }
 
 // 打印日志
 func gAppLog(L *lua.State) int  {
     msg := L.CheckString(-1)
-    Debug.Log(msg)
+    debugging.Log(msg)
     return 0
 }
