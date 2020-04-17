@@ -17,7 +17,7 @@ before_script:
 script:
   - mkdir -p bin
   - go build -o bin/GameApp-"$FILE_NAME" cmd/GameApp/main.go
-  - cd scripts && tar cvfj framework.tar framework
+  - cd scripts && tar cvfj ../bin/framework.tar framework; cd ..
   - ls -alh ./
   - ls -alh bin
 install:
