@@ -21,7 +21,6 @@ var (
 )
 
 func main() {
-
     cmd := os.Args[1]
     switch cmd {
     case "run":
@@ -55,31 +54,53 @@ func runLuaApp() {
 }
 
 func runGetAction() {
-    if len(os.Args) != 3 {
+    if len(os.Args) < 3 {
         debugging.Logf("args error")
         return
     }
-    what := os.Args[2]
-    tokens := strings.Split(what, "@")
-    if len(tokens) < 1 {
-        debugging.Logf("package not found")
+    urlTemplate := []string{
+        "https://github.com/BabyEngine/Backend/releases/latest/download/%s",
+        "https://github.com/BabyEngine/Backend/releases/download/%s/%s",
     }
+    var (
+        tokens []string
+    )
+    what := os.Args[2]
+
+    if strings.HasPrefix(what, "github.com") {
+        urlTemplate = []string{
+            "https://"+what+"/releases/latest/download/%s",
+            "https://"+what+"/releases/download/%s/%s",
+        }
+        what = os.Args[3]
+        tokens = strings.Split(what, "@")
+        if len(tokens) < 1 {
+            debugging.Logf("package not found")
+        }
+    } else {
+        tokens = strings.Split(what, "@")
+        if len(tokens) < 1 {
+            debugging.Logf("package not found")
+        }
+    }
+
     var (
         packageName string
         version string
         downloadUrl string
     )
     packageName = tokens[0]
+
     if len(tokens) == 2 {
         version = tokens[1]
     }
-    debugging.Logf("%s %s", packageName, version)
+
+    //debugging.Logf("%s %s", packageName, version)
     if version == "" { // download latest version
-        downloadUrl = fmt.Sprintf("https://github.com/BabyEngine/Backend/releases/latest/download/%s", packageName)
+        downloadUrl = fmt.Sprintf(urlTemplate[0], packageName)
     } else { // download version
-        downloadUrl = fmt.Sprintf("https://github.com/BabyEngine/Backend/releases/download/%s/%s", version, packageName)
+        downloadUrl = fmt.Sprintf(urlTemplate[1], version, packageName)
     }
-//    debugging.Logf("downloadUrl: %s", downloadUrl)
     resp, err := http.Get(downloadUrl)
     if err != nil {
        debugging.Logf("download error", err)
