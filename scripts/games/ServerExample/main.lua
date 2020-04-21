@@ -40,9 +40,12 @@ end
 startNameServer()
 startGameServer()
 
+local key = BabyEngine.App.GetEnv('SSL_KEY')
+local cert = BabyEngine.App.GetEnv('SSL_CERT')
+print('启动 https?', key, cert)
 -- websocket服务器
 function startWebsocketServer()
-    local server = net.NewWebsocketBinaryServer(":8089", "websocket服务器")
+    local server = net.NewWebsocketBinaryServer(":8089", "websocket服务器", {raw='true', ssl_key=key, ssl_cert=cert})
     server.OnNew = function ( cli )
         print('新连接', cli)
     end
@@ -62,8 +65,8 @@ end
 startWebsocketServer()
 
 -- http 服务器
-function startHTTPServer()
-    local server = net.NewHTTPServer("", "http 服务器")
+function startHTTPSServer()
+    local server = net.NewHTTPServer(":80", {ssl_key=key, ssl_cert=cert})
     server.Serve = function (cli, req)
         print('req', cli, table.tostring(req))
         cli.Send('服务 ok: ' .. md5.sumhexa('hello'))
@@ -73,4 +76,4 @@ function startHTTPServer()
     server.Start()
 end
 
-startHTTPServer()
+startHTTPSServer()

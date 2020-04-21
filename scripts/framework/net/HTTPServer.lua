@@ -1,21 +1,10 @@
 net = net or {}
 
-function net.NewHTTPServer(address)
+function net.NewHTTPServer(address, options)
     local self = {}
+    options = options or {}
     local ptr
     local function onNew(conn)
-        -- print('http cli new', conn)
-
-        -- print(BabyEngine.Net.RunCmd(ptr, conn, 'header', '*'))
-        -- print('body:', BabyEngine.Net.RunCmd(ptr, conn, 'body', '5'))
-        -- print(BabyEngine.Net.RunCmd(ptr, conn, 'host', ''))
-        -- print(BabyEngine.Net.RunCmd(ptr, conn, 'method', ''))
-        -- print(BabyEngine.Net.RunCmd(ptr, conn, 'query', ''))
-
-        -- BabyEngine.Net.RunCmd(ptr, conn, 'set_header', 'custom_key', 'custom_value')
-        -- BabyEngine.Net.Send(ptr, conn, 'hello!!!!')
-        -- BabyEngine.Net.Close(ptr, conn)
-        -- print(BabyEngine.Net.RunCmd(ptr, conn, 'get_all_query', ''))
         local r = json.decode(BabyEngine.Net.RunCmd(ptr, conn, 'get_all_query', '')) or {}
         if r and r.Body then
             r.Body = base64.decode(r.Body)
@@ -30,20 +19,11 @@ function net.NewHTTPServer(address)
         if self.Serve then
             self.Serve(client, r)
         end
-
     end
-    local function onClose(conn)
-        --print('http cli close', conn)
-    end
-    local function onError(conn, err)
-        --print('http cli on error', conn)
-    end
-
+print(table.tostring(options))
     function self.Start( )
-        ptr = BabyEngine.Net.Start('http', address, {tag=tag})
+        ptr = BabyEngine.Net.Start('http', address, {tag=tag, ssl_key=options.ssl_key, ssl_cert=options.ssl_cert})
         BabyEngine.Net.Bind(ptr, "new",  onNew)
-        BabyEngine.Net.Bind(ptr, "close",  onClose)
-        BabyEngine.Net.Bind(ptr, "error",  onError)
     end
 
     function self.Stop()

@@ -2,6 +2,7 @@ package networking
 
 import (
     "fmt"
+    "github.com/BabyEngine/Backend/debugging"
     "io"
     "net"
     "net/http"
@@ -9,28 +10,43 @@ import (
 
 type mHTTPServer struct {
     opts         *Options
-    //wg           sync.WaitGroup
     totalQPS     uint32
-    tx           uint64 // transfer bytes
-    rx           uint64 // receive bytes
-    tp           uint64 // transfer packet
-    rp           uint64 // receive packet
-    //clients      map[int64]*mHTTPClient
-    //clientM      sync.RWMutex
-   // clientId     int64
     serverCloser io.Closer
 }
 
 func (s *mHTTPServer) Init() {
- //   s.clients = make(map[int64]*mHTTPClient)
 }
 
 func (s *mHTTPServer) Serve(addr string) error {
-    closer, err := HTTPListenAndServeWithClose(addr, s)
+    var (
+        ln  net.Listener
+        err error
+    )
+    srv := &http.Server{
+        Handler: s,
+    }
+    if addr == "" {
+        addr = ":http"
+    }
+
+    ln, err = net.Listen("tcp", addr)
     if err != nil {
         return err
     }
-    s.serverCloser = closer
+
+    go func() {
+        if s.opts.TLSEnable {
+            if err := srv.ServeTLS(ln, s.opts.TLSCert, s.opts.TLSKey); err != nil {
+                debugging.Log(err)
+            }
+        } else {
+            if err := srv.Serve(ln); err != nil {
+                debugging.Log(err)
+            }
+        }
+    }()
+
+    s.serverCloser = ln
     return nil
 }
 
@@ -43,7 +59,7 @@ func (s *mHTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     }
     client.init()
     defer func() {
-       s.opts.Handler.OnClose(client)
+        s.opts.Handler.OnClose(client)
     }()
     client.Serve()
 }

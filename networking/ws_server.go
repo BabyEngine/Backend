@@ -39,11 +39,19 @@ func (s *mWebsocketServer) Init() {
 }
 
 func (s *mWebsocketServer) Serve(address string) error {
-    err := http.ListenAndServe(address, s)
-    if err != nil {
-        debugging.Logf("%v", err)
+    if s.opts.TLSEnable {
+        err := http.ListenAndServeTLS(address, s.opts.TLSCert, s.opts.TLSKey, s)
+        if err != nil {
+            debugging.Logf("%v", err)
+        }
+        return err
+    } else {
+        err := http.ListenAndServe(address, s)
+        if err != nil {
+            debugging.Logf("%v", err)
+        }
+        return err
     }
-    return err
 }
 
 func (s *mWebsocketServer) handleKCPConn(conn *websocket.Conn) {

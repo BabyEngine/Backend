@@ -1,8 +1,9 @@
 net = net or {}
 
-function net.NewWebsocketBinaryServer(address, tag)
+function net.NewWebsocketBinaryServer(address, tag, options)
     local self = {
     }
+    options = options or {}
     local clients = {}
     local ptr = nil
     local function onNew(conn)
@@ -49,7 +50,7 @@ function net.NewWebsocketBinaryServer(address, tag)
         self.OnRequest(cli, data, respFunc)
     end
     function self.Start( )
-        ptr = BabyEngine.Net.Start('ws', address, {tag=tag, raw='true'})
+        ptr = BabyEngine.Net.Start('ws', address, {tag=tag, raw=options.raw, ssl_key=options.ssl_key, ssl_cert=options.ssl_cert})
         BabyEngine.Net.Bind(ptr, "new",  onNew)
         BabyEngine.Net.Bind(ptr, "close",  onClose)
         BabyEngine.Net.Bind(ptr, "error",  onError)

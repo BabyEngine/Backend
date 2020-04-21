@@ -14,6 +14,9 @@ type Options struct {
     TTL       time.Duration
     Ctx       context.Context
     IsRawMode bool
+    TLSKey    string
+    TLSCert   string
+    TLSEnable bool
 }
 
 func WithType(t string) OptionFunc {
@@ -49,6 +52,14 @@ func WithContext(c context.Context) OptionFunc {
 func WithRawMode(b bool) OptionFunc {
     return func(options *Options) {
         options.IsRawMode = b
+    }
+}
+
+func WithTLS(key, cert string) OptionFunc {
+    return func(options *Options) {
+        options.TLSKey = key
+        options.TLSCert = cert
+        options.TLSEnable = true
     }
 }
 

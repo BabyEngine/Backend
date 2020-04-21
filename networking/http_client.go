@@ -12,14 +12,14 @@ import (
 )
 
 type mHTTPClient struct {
-    server   *mHTTPServer
-    id       int64
-    w        http.ResponseWriter
-    r        *http.Request
-    opts     *Options
-    stopChan chan interface{}
+    server     *mHTTPServer
+    id         int64
+    w          http.ResponseWriter
+    r          *http.Request
+    opts       *Options
+    stopChan   chan interface{}
     isStopRead bool
-    isStop bool
+    isStop     bool
 }
 
 func (c *mHTTPClient) init() {
@@ -69,7 +69,7 @@ func (c *mHTTPClient) Close() {
 func (c *mHTTPClient) Id() int64 {
     return c.id
 }
-func (c *mHTTPClient) SetId(id int64)  {
+func (c *mHTTPClient) SetId(id int64) {
     c.id = id
 }
 
@@ -132,19 +132,22 @@ func (c *mHTTPClient) RunCmd(cmd string, args []string) string {
     case "get_all_query":
         type QueryInfo struct {
             Header http.Header
-            Url    string
+            Query  string
             Method string
             Host   string
-            Body []byte
+            Body   []byte
+            Path   string
         }
         body, err := ioutil.ReadAll(c.r.Body)
-        if err != nil {}
+        if err != nil {
+        }
         data, _ := json.Marshal(&QueryInfo{
-            Header:c.r.Header,
-            Url:c.r.URL.RawQuery,
-            Method:c.r.Method,
-            Host:c.r.Host,
-            Body:body,
+            Header: c.r.Header,
+            Query:  c.r.URL.RawQuery,
+            Method: c.r.Method,
+            Host:   c.r.Host,
+            Body:   body,
+            Path:   c.r.URL.Path,
         })
         return string(data)
     }

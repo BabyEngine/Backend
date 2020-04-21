@@ -74,15 +74,29 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
         h := &MessageServerHandler{}
         h.L = L
         h.Init(app)
+        ssl_key := flags["ssl_key"]
+        ssl_cert := flags["ssl_cert"]
         // 配置 Server
         go func() {
-            if err := networking.ListenAndServe(
-                networking.WithType("ws"),
-                networking.WithTag(tag),
-                networking.WithAddress(address),
-                networking.WithContext(h.ctx),
-                networking.WithRawMode(isRawMode),
-                networking.WithHandler(h)); err != nil {
+            if ssl_key != "" && ssl_cert != "" {
+                if err := networking.ListenAndServe(
+                    networking.WithType("ws"),
+                    networking.WithTag(tag),
+                    networking.WithAddress(address),
+                    networking.WithContext(h.ctx),
+                    networking.WithRawMode(isRawMode),
+                    networking.WithTLS(ssl_key, ssl_cert),
+                    networking.WithHandler(h)); err != nil {
+                }
+            }else {
+                if err := networking.ListenAndServe(
+                    networking.WithType("ws"),
+                    networking.WithTag(tag),
+                    networking.WithAddress(address),
+                    networking.WithContext(h.ctx),
+                    networking.WithRawMode(isRawMode),
+                    networking.WithHandler(h)); err != nil {
+                }
             }
         }()
 
@@ -91,15 +105,29 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
         h := &MessageServerHandler{}
         h.L = L
         h.Init(app)
+        ssl_key := flags["ssl_key"]
+        ssl_cert := flags["ssl_cert"]
         // 配置 Server
         go func() {
-            if err := networking.ListenAndServe(
-                networking.WithType("http"),
-                networking.WithTag(tag),
-                networking.WithAddress(address),
-                networking.WithContext(h.ctx),
-                networking.WithRawMode(isRawMode),
-                networking.WithHandler(h)); err != nil {
+            if ssl_key != "" && ssl_cert != "" {
+                if err := networking.ListenAndServe(
+                    networking.WithType("http"),
+                    networking.WithTag(tag),
+                    networking.WithAddress(address),
+                    networking.WithContext(h.ctx),
+                    networking.WithRawMode(isRawMode),
+                    networking.WithTLS(ssl_key, ssl_cert),
+                    networking.WithHandler(h)); err != nil {
+                }
+            } else {
+                if err := networking.ListenAndServe(
+                    networking.WithType("http"),
+                    networking.WithTag(tag),
+                    networking.WithAddress(address),
+                    networking.WithContext(h.ctx),
+                    networking.WithRawMode(isRawMode),
+                    networking.WithHandler(h)); err != nil {
+                }
             }
         }()
         return h
@@ -109,7 +137,7 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
 
 func BindNetServerFunc(L *lua.State, p interface{}, name string, ref int) {
     s := p.(*MessageServerHandler)
-    L.GetGlobal("A")
+    //L.GetGlobal("A")
     s.BindFunc(name, ref)
 }
 
