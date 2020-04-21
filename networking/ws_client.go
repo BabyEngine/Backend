@@ -196,3 +196,9 @@ func (c *mWebsocketClient) Close() {
 func (c *mWebsocketClient) Id() int64 {
     return c.id
 }
+func (c *mWebsocketClient) SetId(id int64)  {
+    c.id = id
+}
+func (c *mWebsocketClient) RunCmd(cmd string, args[] string) string {
+    return ""
+}

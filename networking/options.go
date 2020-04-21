@@ -1,60 +1,60 @@
 package networking
 
 import (
-	"context"
-	"time"
+    "context"
+    "time"
 )
 
 type OptionFunc func(options *Options)
 type Options struct {
-	Type      string
-	Tag       string
-	Address   string
-	Handler   ClientHandler
-	TTL       time.Duration
-	Ctx       context.Context
-	IsRawMode bool
+    Type      string
+    Tag       string
+    Address   string
+    Handler   ClientHandler
+    TTL       time.Duration
+    Ctx       context.Context
+    IsRawMode bool
 }
 
 func WithType(t string) OptionFunc {
-	return func(options *Options) {
-		options.Type = t
-	}
+    return func(options *Options) {
+        options.Type = t
+    }
 }
 
 func WithTag(tag string) OptionFunc {
-	return func(options *Options) {
-		options.Tag = tag
-	}
+    return func(options *Options) {
+        options.Tag = tag
+    }
 }
 
 func WithAddress(address string) OptionFunc {
-	return func(options *Options) {
-		options.Address = address
-	}
+    return func(options *Options) {
+        options.Address = address
+    }
 }
 
 func WithHandler(handler ClientHandler) OptionFunc {
-	return func(options *Options) {
-		options.Handler = handler
-	}
+    return func(options *Options) {
+        options.Handler = handler
+    }
 }
 
 func WithContext(c context.Context) OptionFunc {
-	return func(options *Options) {
-		options.Ctx = c
-	}
+    return func(options *Options) {
+        options.Ctx = c
+    }
 }
 
 func WithRawMode(b bool) OptionFunc {
-	return func(options *Options) {
-		options.IsRawMode = b
-	}
+    return func(options *Options) {
+        options.IsRawMode = b
+    }
 }
 
 func DefaultOptions() *Options {
-	opts := &Options{}
-	opts.TTL = time.Second * 30
-	opts.Ctx = context.TODO()
-	return opts
+    opts := &Options{}
+    opts.TTL = time.Second * 30
+    opts.Ctx = context.TODO()
+    return opts
 }

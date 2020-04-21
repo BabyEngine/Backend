@@ -124,6 +124,23 @@ func gRedirectNetClient(L*lua.State) int  {
     SendNetRawData(L, ptr, int64(cliId), networking.OPCODE_TURN, data)
     return 0
 }
+// Run Cmd
+func gRunCmd(L*lua.State) int  {
+    ptr := L.ToGoStruct(1)
+    cliId := L.ToInteger(2)
+    cmd := L.ToString(3)
+    n := L.GetTop()
+    var args[]string
+    if n > 3 {
+        for i := 3; i <= n; i++ {
+            args=append(args, L.ToString(i))
+        }
+    }
+    value := NetRunCmd(L, ptr, int64(cliId), cmd, args)
+    L.PushString(value)
+    return 1
+}
+
 // 退出app
 func gExit(L *lua.State) int {
     app := GetApplication(L)

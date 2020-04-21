@@ -13,11 +13,11 @@ function net.NewWebsocketBinaryServer(address, tag)
             BabyEngine.Net.Send(ptr, cli.conn, data)
         end
         function cli.Close()
-            BabyEngine.Net.Close(ptr, cli)
+            BabyEngine.Net.Close(ptr, cli.conn)
         end
-        -- function cli.Redirect(address)
-        --     BabyEngine.Net.Redirect(ptr, cli, address)
-        -- end
+        function cli.Redirect(address)
+            BabyEngine.Net.Redirect(ptr, cli.conn, address)
+        end
         clients[conn] = cli
         if not self.OnNew then return end
         self.OnNew(cli)

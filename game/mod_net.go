@@ -7,6 +7,7 @@ import (
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
     "sync"
+    "sync/atomic"
 )
 
 func initModNet(L *lua.State) {
@@ -40,8 +41,8 @@ func initModNet(L *lua.State) {
         L.PushGoFunction(gRedirectNetClient)
         L.SetTable(-3)
 
-        L.PushString("Redirect")
-        L.PushGoFunction(gRedirectNetClient)
+        L.PushString("RunCmd")
+        L.PushGoFunction(gRunCmd)
         L.SetTable(-3)
     }
     L.SetTable(-3)
@@ -86,6 +87,22 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
         }()
 
         return h
+    case "http":
+        h := &MessageServerHandler{}
+        h.L = L
+        h.Init(app)
+        // 配置 Server
+        go func() {
+            if err := networking.ListenAndServe(
+                networking.WithType("http"),
+                networking.WithTag(tag),
+                networking.WithAddress(address),
+                networking.WithContext(h.ctx),
+                networking.WithRawMode(isRawMode),
+                networking.WithHandler(h)); err != nil {
+            }
+        }()
+        return h
     }
     return nil
 }
@@ -120,6 +137,17 @@ func SendNetRawData(L *lua.State, p interface{}, cliId int64, op networking.OpCo
     s.SendClientRawData(cliId, op, data)
 }
 
+func NetRunCmd(L *lua.State, p interface{}, cliId int64, cmd string, args []string) string {
+    s := p.(*MessageServerHandler)
+    if s == nil {
+        return ""
+    }
+    if c := s.GetClient(cliId); c != nil {
+        return c.RunCmd(cmd, args)
+    }
+    return ""
+}
+
 type MessageServerHandler struct {
     app        *Application
     ctx        context.Context
@@ -131,6 +159,20 @@ type MessageServerHandler struct {
     refError   int
     refRequest int
     clients    map[int64]networking.Client
+    clientM sync.RWMutex
+    clientId   int64
+}
+
+func (h *MessageServerHandler) GetAllClient() []networking.Client {
+    h.clientM.RLock()
+    result := make([]networking.Client, len(h.clients))
+    i:=0
+    for _, v := range h.clients {
+        result[i] = v
+        i++
+    }
+    h.clientM.RUnlock()
+    return result
 }
 
 var (
@@ -144,6 +186,8 @@ func (h *MessageServerHandler) Init(app *Application) {
 }
 
 func (m *MessageServerHandler) OnNew(client networking.Client) {
+    id := atomic.AddInt64(&m.clientId, 1)
+    client.SetId(id)
     debugging.LogIff(EnableDebug, "OnNew:%v", client)
     m.app.eventSys.
         OnMainThread(func() {
@@ -263,21 +307,27 @@ func (h *MessageServerHandler) BindFunc(name string, ref int) {
     case "data":
         h.refData = ref
     case "error":
-        h.refError = ref    
+        h.refError = ref
     case "request":
         h.refRequest = ref
     }
 }
 
 func (h *MessageServerHandler) SendClientData(clientId int64, data []byte) {
-    if cli, ok := h.clients[clientId]; ok {
+    h.clientM.RLock()
+    cli, ok := h.clients[clientId]
+    h.clientM.RUnlock()
+    if ok {
         if err := cli.SendData(data); err != nil {
             debugging.Log(err)
         }
     }
 }
 func (h *MessageServerHandler) SendClientRawData(clientId int64, op networking.OpCode, data []byte) {
-    if cli, ok := h.clients[clientId]; ok {
+    h.clientM.RLock()
+    cli, ok := h.clients[clientId]
+    h.clientM.RUnlock()
+    if ok {
         if err := cli.SendRaw(op, data); err != nil {
             debugging.Log(err)
         }
@@ -285,7 +335,22 @@ func (h *MessageServerHandler) SendClientRawData(clientId int64, op networking.O
 }
 
 func (h *MessageServerHandler) CloseClient(clientId int64) {
-    if cli, ok := h.clients[clientId]; ok {
+    h.clientM.RLock()
+    cli, ok := h.clients[clientId]
+    h.clientM.RUnlock()
+    if ok {
         cli.Close()
+        h.clientM.Lock()
+        delete(h.clients, clientId)
+        h.clientM.Unlock()
     }
+}
+
+func (h *MessageServerHandler) GetClient(id int64) networking.Client {
+    h.clientM.RLock()
+    defer h.clientM.RUnlock()
+    if cli, ok := h.clients[id]; ok {
+        return cli
+    }
+    return nil
 }

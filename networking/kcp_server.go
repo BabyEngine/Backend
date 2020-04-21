@@ -18,13 +18,9 @@ type mKCPServer struct {
     rx       uint64 // receive bytes
     tp       uint64 // transfer packet
     rp       uint64 // receive packet
-    clients  map[int64]*mKCPClient
-    clientM  sync.RWMutex
-    clientId int64
 }
 
 func (s *mKCPServer) Init() {
-    s.clients = make(map[int64]*mKCPClient)
 }
 
 func (s *mKCPServer) Serve(address string) error {
@@ -77,37 +73,14 @@ func (s *mKCPServer) handleKCPConn(conn net.Conn) {
         opts: s.opts,
         server:s,
     }
+    client.init()
     s.wg.Add(1)
     defer func() {
         s.wg.Done()
-        s.RemoveClient(client)
         s.opts.Handler.OnClose(client)
     }()
 
-    s.AddClient(client)
     client.Serve()
-}
-
-func (s *mKCPServer) AddClient(client *mKCPClient) {
-    s.clientM.Lock()
-
-    for {
-        s.clientId++
-        if _, exist := s.clients[client.id]; !exist {
-            client.id = s.clientId
-            s.clients[client.id] = client
-            break
-        }
-    }
-    s.clientM.Unlock()
-}
-
-func (s *mKCPServer) RemoveClient(client *mKCPClient) {
-    s.clientM.Lock()
-    if _, ok := s.clients[client.id]; ok {
-        delete(s.clients, client.id)
-    }
-    s.clientM.Unlock()
 }
 
 func (s *mKCPServer) checkClient() {
@@ -115,11 +88,13 @@ func (s *mKCPServer) checkClient() {
         checkList []*mKCPClient
         deathList []*mKCPClient
     )
-    s.clientM.RLock()
-    for _, cli := range s.clients {
-        checkList = append(checkList, cli)
+    if s.opts == nil || s.opts.Handler == nil { return }
+    clients := s.opts.Handler.GetAllClient()
+    for _, cli := range clients {
+        if cc, ok := cli.(*mKCPClient); ok {
+            checkList = append(checkList, cc)
+        }
     }
-    s.clientM.RUnlock()
 
     for _, cli := range checkList {
         if !cli.IsAlive() {
@@ -129,12 +104,10 @@ func (s *mKCPServer) checkClient() {
 
     if len(deathList) > 0 {
         for _, cli := range deathList {
-            fmt.Println("移除客户端", cli)
-            cli.Stop()
-            s.RemoveClient(cli)
+            s.opts.Handler.OnClose(cli)
         }
     }
-    totalCount := len(s.clients)
+    totalCount := len(clients)
     deathCount := len(deathList)
     if deathCount > 0 {
         fmt.Printf("当前客户端 总数:%d 死亡:%d\n", totalCount, deathCount)

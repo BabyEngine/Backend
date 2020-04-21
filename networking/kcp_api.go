@@ -16,6 +16,11 @@ func ListenAndServe(options ...OptionFunc) error {
         server.opts = opts
         server.Init()
         return server.Serve(opts.Address)
+    case "http":
+        var server mHTTPServer
+        server.opts = opts
+        server.Init()
+        return server.Serve(opts.Address)
     }
     return ErrorOptionsInvalid
 }

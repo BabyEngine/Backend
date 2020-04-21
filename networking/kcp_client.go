@@ -173,3 +173,9 @@ func (c *mKCPClient) Close() {
 func (c *mKCPClient) Id() int64 {
     return c.id
 }
+func (c *mKCPClient) SetId(id int64)  {
+    c.id = id
+}
+func (c *mKCPClient) RunCmd(cmd string, args[] string) string {
+    return ""
+}

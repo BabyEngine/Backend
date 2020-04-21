@@ -60,3 +60,17 @@ function startWebsocketServer()
 end
 
 startWebsocketServer()
+
+-- http 服务器
+function startHTTPServer()
+    local server = net.NewHTTPServer("", "http 服务器")
+    server.Serve = function (cli, req)
+        print('req', cli, table.tostring(req))
+        cli.Send('服务 ok: ' .. md5.sumhexa('hello'))
+        cli.Close()
+    end
+
+    server.Start()
+end
+
+startHTTPServer()
