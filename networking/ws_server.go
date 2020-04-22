@@ -30,7 +30,6 @@ func (s *mWebsocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *mWebsocketServer) Init() {
- //   s.clients = make(map[int64]*mWebsocketClient)
     s.ws = &websocket.Upgrader{
         CheckOrigin: func(r *http.Request) bool {
             return true

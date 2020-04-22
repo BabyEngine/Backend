@@ -7,7 +7,7 @@ var (
     Logf = log.Printf
     LogIf = logIf
     LogIff = logIff
-
+    Println = Log
     customPrefix = ""
 )
 
@@ -30,4 +30,8 @@ func logIff(cond bool, format string, v ...interface{}) {
 func Prefix(prefix string) {
     customPrefix = prefix
     log.SetPrefix(customPrefix)
+}
+
+func logDebug(v ...interface{})  {
+
 }

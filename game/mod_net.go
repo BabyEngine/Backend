@@ -60,7 +60,7 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
         // 配置 Server
         go func() {
             if err := networking.ListenAndServe(
-                networking.WithType("kcp"),
+                networking.WithType(netType),
                 networking.WithTag(tag),
                 networking.WithAddress(address),
                 networking.WithContext(h.ctx),
@@ -74,29 +74,16 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
         h := &MessageServerHandler{}
         h.L = L
         h.Init(app)
-        ssl_key := flags["ssl_key"]
-        ssl_cert := flags["ssl_cert"]
         // 配置 Server
         go func() {
-            if ssl_key != "" && ssl_cert != "" {
-                if err := networking.ListenAndServe(
-                    networking.WithType("ws"),
-                    networking.WithTag(tag),
-                    networking.WithAddress(address),
-                    networking.WithContext(h.ctx),
-                    networking.WithRawMode(isRawMode),
-                    networking.WithTLS(ssl_key, ssl_cert),
-                    networking.WithHandler(h)); err != nil {
-                }
-            }else {
-                if err := networking.ListenAndServe(
-                    networking.WithType("ws"),
-                    networking.WithTag(tag),
-                    networking.WithAddress(address),
-                    networking.WithContext(h.ctx),
-                    networking.WithRawMode(isRawMode),
-                    networking.WithHandler(h)); err != nil {
-                }
+            if err := networking.ListenAndServe(
+                networking.WithType(netType),
+                networking.WithTag(tag),
+                networking.WithAddress(address),
+                networking.WithContext(h.ctx),
+                networking.WithRawMode(isRawMode),
+                networking.WithTLS(flags["ssl_key"], flags["ssl_cert"]),
+                networking.WithHandler(h)); err != nil {
             }
         }()
 
@@ -105,29 +92,35 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
         h := &MessageServerHandler{}
         h.L = L
         h.Init(app)
-        ssl_key := flags["ssl_key"]
-        ssl_cert := flags["ssl_cert"]
         // 配置 Server
         go func() {
-            if ssl_key != "" && ssl_cert != "" {
-                if err := networking.ListenAndServe(
-                    networking.WithType("http"),
-                    networking.WithTag(tag),
-                    networking.WithAddress(address),
-                    networking.WithContext(h.ctx),
-                    networking.WithRawMode(isRawMode),
-                    networking.WithTLS(ssl_key, ssl_cert),
-                    networking.WithHandler(h)); err != nil {
-                }
-            } else {
-                if err := networking.ListenAndServe(
-                    networking.WithType("http"),
-                    networking.WithTag(tag),
-                    networking.WithAddress(address),
-                    networking.WithContext(h.ctx),
-                    networking.WithRawMode(isRawMode),
-                    networking.WithHandler(h)); err != nil {
-                }
+            if err := networking.ListenAndServe(
+                networking.WithType(netType),
+                networking.WithTag(tag),
+                networking.WithAddress(address),
+                networking.WithContext(h.ctx),
+                networking.WithRawMode(isRawMode),
+                networking.WithTLS(flags["ssl_key"], flags["ssl_cert"]),
+                networking.WithHandler(h)); err != nil {
+                debugging.Log(err)
+            }
+        }()
+        return h
+    case "socket.io":
+        h := &MessageServerHandler{}
+        h.L = L
+        h.Init(app)
+        // 配置 Server
+        go func() {
+            if err := networking.ListenAndServe(
+                networking.WithType(netType),
+                networking.WithTag(tag),
+                networking.WithAddress(address),
+                networking.WithContext(h.ctx),
+                networking.WithRawMode(isRawMode),
+                networking.WithTLS(flags["ssl_key"], flags["ssl_cert"]),
+                networking.WithHandler(h)); err != nil {
+                debugging.Log(err)
             }
         }()
         return h
@@ -187,14 +180,15 @@ type MessageServerHandler struct {
     refError   int
     refRequest int
     clients    map[int64]networking.Client
-    clientM sync.RWMutex
+    clientM    sync.RWMutex
     clientId   int64
+    clientMap map[interface{}]networking.Client
 }
 
 func (h *MessageServerHandler) GetAllClient() []networking.Client {
     h.clientM.RLock()
     result := make([]networking.Client, len(h.clients))
-    i:=0
+    i := 0
     for _, v := range h.clients {
         result[i] = v
         i++
@@ -203,6 +197,21 @@ func (h *MessageServerHandler) GetAllClient() []networking.Client {
     return result
 }
 
+func (h *MessageServerHandler) Mapping(key interface{}, client networking.Client) {
+    h.clientM.Lock()
+    if client == nil {
+        delete(h.clientMap, key)
+    } else {
+        h.clientMap[key] = client
+    }
+    h.clientM.Unlock()
+}
+func (h *MessageServerHandler) GetClientByKey(key interface{}) networking.Client  {
+    h.clientM.RLock()
+    cli, _ := h.clientMap[key]
+    h.clientM.RUnlock()
+    return cli
+}
 var (
     EnableDebug = false
 )
@@ -211,6 +220,7 @@ func (h *MessageServerHandler) Init(app *Application) {
     h.app = app
     h.ctx, h.cancel = context.WithCancel(context.Background())
     h.clients = make(map[int64]networking.Client)
+    h.clientMap = make(map[interface{}]networking.Client)
 }
 
 func (m *MessageServerHandler) OnNew(client networking.Client) {

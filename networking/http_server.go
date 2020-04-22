@@ -26,7 +26,11 @@ func (s *mHTTPServer) Serve(addr string) error {
         Handler: s,
     }
     if addr == "" {
-        addr = ":http"
+        if s.opts.TLSEnable {
+            addr = ":https"
+        } else {
+            addr = ":http"
+        }
     }
 
     ln, err = net.Listen("tcp", addr)

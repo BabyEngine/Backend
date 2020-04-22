@@ -8,6 +8,8 @@ type ClientHandler interface {
     OnRequest(client Client, data[]byte) []byte
     Stop()
     GetAllClient() []Client
+    Mapping(key interface{}, client Client)
+    GetClientByKey(key interface{}) Client
 }
 
 type Client interface {

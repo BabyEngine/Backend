@@ -21,6 +21,11 @@ func ListenAndServe(options ...OptionFunc) error {
         server.opts = opts
         server.Init()
         return server.Serve(opts.Address)
+    case "socket.io":
+        var server mSocketIOServer
+        server.opts = opts
+        server.Init()
+        return server.Serve(opts.Address)
     }
     return ErrorOptionsInvalid
 }

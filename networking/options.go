@@ -59,7 +59,11 @@ func WithTLS(key, cert string) OptionFunc {
     return func(options *Options) {
         options.TLSKey = key
         options.TLSCert = cert
-        options.TLSEnable = true
+        if options.TLSKey != "" && options.TLSCert != "" {
+            options.TLSEnable = true
+        } else {
+            options.TLSEnable = false
+        }
     }
 }
 

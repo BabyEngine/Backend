@@ -20,7 +20,7 @@ function net.NewHTTPServer(address, options)
             self.Serve(client, r)
         end
     end
-print(table.tostring(options))
+
     function self.Start( )
         ptr = BabyEngine.Net.Start('http', address, {tag=tag, ssl_key=options.ssl_key, ssl_cert=options.ssl_cert})
         BabyEngine.Net.Bind(ptr, "new",  onNew)
