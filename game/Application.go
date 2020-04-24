@@ -45,6 +45,8 @@ func (app *Application) Init(L *lua.State) {
     initModNet(L)
     // Redis
     initModRedis(L)
+    // Cipher
+    initModCipher(L)
     //
     injectArgs(L)
 
