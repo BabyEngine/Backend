@@ -120,7 +120,7 @@ func runGetAction() {
     if data == nil {
       return
     }
-    os.Mkdir(".tmp", 0600)
+    os.Mkdir(".tmp", 0666)
     dname, err := ioutil.TempDir(".tmp", "BabyEngine")
     if err != nil {
       debugging.Logf("create temp dir error:%v", err)
@@ -128,7 +128,7 @@ func runGetAction() {
     }
     defer os.RemoveAll(".tmp")
     fname := filepath.Join(dname, packageName)
-    err = ioutil.WriteFile(fname, data, 0600)
+    err = ioutil.WriteFile(fname, data, 0666)
     if err != nil {
       debugging.Logf("write file error:%v", err)
       return
