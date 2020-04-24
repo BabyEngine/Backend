@@ -153,9 +153,10 @@ func (c *mKCPClient) String() string {
 }
 
 func (c *mKCPClient) SendData(data []byte) error {
-    return c.SendRaw(OPCODE_DATA, data)
+    return c.SendRawEvent("", OPCODE_DATA, data)
 }
-func (c *mKCPClient) SendRaw(op OpCode, data []byte) error {
+
+func (c *mKCPClient)SendRawEvent(e string, op OpCode, data []byte) error {
     if n, err := WriteMessage(c.conn, op, data); err != nil {
         atomic.AddUint64(&c.tp, 1)         // 发送的数据包总数
         atomic.AddUint64(&c.tx, uint64(n)) // 发送的数据包总字节数

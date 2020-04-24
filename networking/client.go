@@ -14,7 +14,8 @@ type ClientHandler interface {
 
 type Client interface {
     SendData(data []byte) error
-    SendRaw(op OpCode, data []byte) error
+    //SendRaw(op OpCode, data []byte) error
+    SendRawEvent(e string, op OpCode, data []byte) error
     Close()
     Id() int64
     SetId(id int64)

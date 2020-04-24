@@ -121,9 +121,20 @@ func gRedirectNetClient(L*lua.State) int  {
     ptr := L.ToGoStruct(1)
     cliId := L.ToInteger(2)
     data := L.ToBytes(3)
-    SendNetRawData(L, ptr, int64(cliId), networking.OPCODE_TURN, data)
+    SendNetRawDataEvent(L, ptr, int64(cliId), "", networking.OPCODE_TURN, data)
     return 0
 }
+// send raw data
+func gNetClientSendRaw(L *lua.State) int {
+    ptr := L.ToGoStruct(1)
+    cliId := L.ToInteger(2)
+    event := L.ToString(3)
+    op    := L.ToInteger(4)
+    data := L.ToBytes(5)
+    SendNetRawDataEvent(L, ptr, int64(cliId), event, networking.OpCode(op), data)
+    return 0
+}
+
 // Run Cmd
 func gRunCmd(L*lua.State) int  {
     ptr := L.ToGoStruct(1)

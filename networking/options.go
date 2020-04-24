@@ -17,7 +17,15 @@ type Options struct {
     TLSKey    string
     TLSCert   string
     TLSEnable bool
+    Args map[string]string
 }
+
+func WithArgs(args map[string]string) OptionFunc {
+    return func(options *Options) {
+        options.Args = args
+    }
+}
+
 
 func WithType(t string) OptionFunc {
     return func(options *Options) {

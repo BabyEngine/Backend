@@ -9,10 +9,6 @@ import (
     "time"
 )
 
-var (
-    TextMessage   = "text"
-)
-
 type mSocketIOClient struct {
     server     *mSocketIOServer
     id         int64
@@ -39,6 +35,7 @@ type mSocketIOClient struct {
 type mSocketIOClientMessage struct {
     data []byte
     reply chan []byte
+    evt string
 }
 
 func (c *mSocketIOClient) init() {
@@ -103,7 +100,7 @@ EXITLOOP:
                     c.latency = val
                 }
                 bin := BuildMessage(OPCODE_PONG, nil)
-                c.conn.Emit(TextMessage, bin)
+                c.conn.Emit(msg.evt, bin)
             case OPCODE_PONG:
             case OPCODE_DATA:
                 c.opts.Handler.OnData(c, pkg.Data)
@@ -184,22 +181,24 @@ func (c *mSocketIOClient) String() string {
 }
 
 func (c *mSocketIOClient) SendData(data []byte) error {
-    return c.SendRaw(OPCODE_DATA, data)
+    return c.SendRawEvent("", OPCODE_DATA, data)
 }
-func (c *mSocketIOClient) SendRaw(op OpCode, data []byte) error {
+
+func (c *mSocketIOClient) SendRawEvent(e string, op OpCode, data []byte) error {
     if c.opts.IsRawMode {
-        c.conn.Emit(TextMessage, data)
+        c.conn.Emit(e, data)
         return nil
     }
     bin := BuildMessage(op, data)
     n := len(bin)
-    c.conn.Emit(TextMessage, data)
+    c.conn.Emit(e, data)
     atomic.AddUint64(&c.tp, 1)         // 发送的数据包总数
     atomic.AddUint64(&c.tx, uint64(n)) // 发送的数据包总字节数
     atomic.AddUint32(&c.qpsTCount, 1)  // 发送的QPS
     c.server.onNetStat(1, 1, uint64(n))
     return nil
 }
+
 func (c *mSocketIOClient) Close() {
     c.Stop()
 }

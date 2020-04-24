@@ -10,8 +10,8 @@ function net.NewSocketIOServer(address, options)
             conn = conn,
         }
 
-        function cli.Send(data)
-            BabyEngine.Net.Send(ptr, cli.conn, data)
+        function cli.Emit(event, data)
+            BabyEngine.Net.SendRaw(ptr, cli.conn, event, 0, data)
         end
         function cli.Close()
             BabyEngine.Net.Close(ptr, cli.conn)
@@ -51,7 +51,11 @@ function net.NewSocketIOServer(address, options)
     end
 
     function self.Start( )
-        ptr = BabyEngine.Net.Start('socket.io', address, {raw='true',ssl_key=options.ssl_key, ssl_cert=options.ssl_cert})
+        ptr = BabyEngine.Net.Start('socket.io', address,
+            {raw='true',
+                eventName = options.eventName,
+            ssl_key=options.ssl_key,
+            ssl_cert=options.ssl_cert})
         BabyEngine.Net.Bind(ptr, "new",  onNew)
         BabyEngine.Net.Bind(ptr, "close",  onClose)
         BabyEngine.Net.Bind(ptr, "error",  onError)

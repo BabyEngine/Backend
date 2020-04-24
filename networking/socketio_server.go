@@ -9,6 +9,7 @@ import (
     "io"
     "net"
     "net/http"
+    "strings"
     "sync"
     "sync/atomic"
 )
@@ -120,31 +121,37 @@ func (s *mSocketIOServer) postServe(ln net.Listener) {
         go client.Serve()
         return nil
     })
-    //server.OnEvent("/", "notice", func(conn socketio.Conn, msg string) {
-    //    debugging.Println("notice:", msg)
-    //    conn.Emit("reply", "have "+msg)
-    //})
-    server.OnEvent("/", "text", func(conn socketio.Conn, msg string) []byte {
-        conn.SetContext(msg)
-        data, err := base64.StdEncoding.DecodeString(msg)
-        if err != nil {
-            debugging.Log("socket.io data format error:", err)
-            return nil
-        }
-        if cli := s.opts.Handler.GetClientByKey(conn); cli != nil {
-            if cc, ok := cli.(*mSocketIOClient); ok {
-                m := &mSocketIOClientMessage{
-                    data:data,
-                    reply:make(chan []byte),
-                }
-                cc.msgChan <- m
-                reply := <-m.reply
-                return reply
-                //return string(reply)
+    regEvent := func(nsp, evt string) {
+        server.OnEvent("/", evt, func(conn socketio.Conn, msg string) []byte {
+            conn.SetContext(msg)
+            data, err := base64.StdEncoding.DecodeString(msg)
+            if err != nil {
+                debugging.Log("socket.io data format error:", err)
+                return nil
             }
+            if cli := s.opts.Handler.GetClientByKey(conn); cli != nil {
+                if cc, ok := cli.(*mSocketIOClient); ok {
+                    m := &mSocketIOClientMessage{
+                        data:data,
+                        reply:make(chan []byte),
+                        evt: evt,
+                    }
+                    cc.msgChan <- m
+                    reply := <-m.reply
+                    return reply
+                    //return string(reply)
+                }
+            }
+            return nil
+        })
+    }
+    if eventNames, ok := s.opts.Args["eventNames"]; ok {
+        names := strings.Split(eventNames, "|")
+        for _, eventName := range names {
+            regEvent("/", eventName)
         }
-        return nil
-    })
+    }
+
     server.OnError("/", func(conn socketio.Conn, e error) {
         if cli := s.opts.Handler.GetClientByKey(conn); cli != nil {
             s.opts.Handler.OnError(cli, e)

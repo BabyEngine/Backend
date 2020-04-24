@@ -41,6 +41,10 @@ func initModNet(L *lua.State) {
         L.PushGoFunction(gRedirectNetClient)
         L.SetTable(-3)
 
+        L.PushString("SendRaw")
+        L.PushGoFunction(gNetClientSendRaw)
+        L.SetTable(-3)
+
         L.PushString("RunCmd")
         L.PushGoFunction(gRunCmd)
         L.SetTable(-3)
@@ -65,6 +69,7 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
                 networking.WithAddress(address),
                 networking.WithContext(h.ctx),
                 networking.WithRawMode(isRawMode),
+                networking.WithArgs(flags),
                 networking.WithHandler(h)); err != nil {
             }
         }()
@@ -83,6 +88,7 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
                 networking.WithContext(h.ctx),
                 networking.WithRawMode(isRawMode),
                 networking.WithTLS(flags["ssl_key"], flags["ssl_cert"]),
+                networking.WithArgs(flags),
                 networking.WithHandler(h)); err != nil {
             }
         }()
@@ -101,6 +107,7 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
                 networking.WithContext(h.ctx),
                 networking.WithRawMode(isRawMode),
                 networking.WithTLS(flags["ssl_key"], flags["ssl_cert"]),
+                networking.WithArgs(flags),
                 networking.WithHandler(h)); err != nil {
                 debugging.Log(err)
             }
@@ -119,6 +126,7 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
                 networking.WithContext(h.ctx),
                 networking.WithRawMode(isRawMode),
                 networking.WithTLS(flags["ssl_key"], flags["ssl_cert"]),
+                networking.WithArgs(flags),
                 networking.WithHandler(h)); err != nil {
                 debugging.Log(err)
             }
@@ -150,12 +158,20 @@ func CloseClient(L *lua.State, p interface{}, cliId int64) {
     s.CloseClient(cliId)
 }
 
-func SendNetRawData(L *lua.State, p interface{}, cliId int64, op networking.OpCode, data []byte) {
+//func SendNetRawData(L *lua.State, p interface{}, cliId int64, op networking.OpCode, data []byte) {
+//    s := p.(*MessageServerHandler)
+//    if s == nil {
+//        return
+//    }
+//    s.SendClientRawData(cliId, op, data)
+//}
+
+func SendNetRawDataEvent(L *lua.State, p interface{}, cliId int64, event string, op networking.OpCode, data []byte) {
     s := p.(*MessageServerHandler)
     if s == nil {
         return
     }
-    s.SendClientRawData(cliId, op, data)
+    s.SendClientRawDataEvent(cliId, event, op, data)
 }
 
 func NetRunCmd(L *lua.State, p interface{}, cliId int64, cmd string, args []string) string {
@@ -361,12 +377,23 @@ func (h *MessageServerHandler) SendClientData(clientId int64, data []byte) {
         }
     }
 }
-func (h *MessageServerHandler) SendClientRawData(clientId int64, op networking.OpCode, data []byte) {
+//func (h *MessageServerHandler) SendClientRawData(clientId int64, op networking.OpCode, data []byte) {
+//    h.clientM.RLock()
+//    cli, ok := h.clients[clientId]
+//    h.clientM.RUnlock()
+//    if ok {
+//        if err := cli.SendRaw(op, data); err != nil {
+//            debugging.Log(err)
+//        }
+//    }
+//}
+
+func (h *MessageServerHandler) SendClientRawDataEvent(clientId int64, e string, op networking.OpCode, data []byte) {
     h.clientM.RLock()
     cli, ok := h.clients[clientId]
     h.clientM.RUnlock()
     if ok {
-        if err := cli.SendRaw(op, data); err != nil {
+        if err := cli.SendRawEvent(e, op, data); err != nil {
             debugging.Log(err)
         }
     }

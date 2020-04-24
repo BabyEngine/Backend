@@ -40,7 +40,7 @@ end
 startNameServer()
 startGameServer()
 
-local key = BabyEngine.App.GetEnv('SSL_KEY')
+-- local key = BabyEngine.App.GetEnv('SSL_KEY')
 local cert = BabyEngine.App.GetEnv('SSL_CERT')
 -- websocket服务器
 function startWebsocketServer()
@@ -77,7 +77,7 @@ startHTTPServer()
 
 -- socket.io 服务器
 function startSocketIOServer()
-    local server = net.NewSocketIOServer(":81", {ssl_key=key, ssl_cert=cert})
+    local server = net.NewSocketIOServer(":8087", {ssl_key=key, ssl_cert=cert, eventName='msgproto'})
     server.OnNew = function ( cli )
         print('新连接', cli)
     end

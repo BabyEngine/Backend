@@ -3,7 +3,6 @@ package networking
 import "C"
 import (
     "encoding/json"
-    "errors"
     "github.com/BabyEngine/Backend/debugging"
     "io/ioutil"
     "net/http"
@@ -32,10 +31,15 @@ func (c *mHTTPClient) SendData(data []byte) error {
     return err
 }
 
-func (c *mHTTPClient) SendRaw(op OpCode, data []byte) error {
-    return errors.New("UnImpl")
+func (c *mHTTPClient) SendRawEvent(e string, op OpCode, data []byte) error {
+    if e == "" {
+        e = "200"
+    }
+    if code, err := strconv.Atoi(e); err == nil {
+        c.w.WriteHeader(code)
+    }
+    return c.SendData(data)
 }
-
 func (c *mHTTPClient) Close() {
     if c.isStopRead {
         return
@@ -153,3 +157,4 @@ func (c *mHTTPClient) RunCmd(cmd string, args []string) string {
     }
     return ""
 }
+

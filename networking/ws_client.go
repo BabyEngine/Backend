@@ -170,10 +170,11 @@ func (c *mWebsocketClient) String() string {
 }
 
 func (c *mWebsocketClient) SendData(data []byte) error {
-    return c.SendRaw(OPCODE_DATA, data)
+    return c.SendRawEvent("", OPCODE_DATA, data)
 
 }
-func (c *mWebsocketClient) SendRaw(op OpCode, data []byte) error {
+
+func (c *mWebsocketClient)SendRawEvent(e string, op OpCode, data []byte) error {
     if c.opts.IsRawMode {
         return c.conn.WriteMessage(websocket.BinaryMessage, data)
     }

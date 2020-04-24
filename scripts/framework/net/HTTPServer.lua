@@ -13,8 +13,12 @@ function net.NewHTTPServer(address, options)
         function client.Close()
             BabyEngine.Net.Close(ptr, conn)
         end
-        function client.Send( data )
-            BabyEngine.Net.Send(ptr, conn, data)
+        function client.Send( httpStatusCode, data )
+            if not data then
+                data = httpStatusCode
+                httpStatusCode = 200
+            end
+            BabyEngine.Net.SendRaw(ptr, conn, tostring(httpStatusCode), 0, data)
         end
         if self.Serve then
             self.Serve(client, r)
