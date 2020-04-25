@@ -47,6 +47,8 @@ func (app *Application) Init(L *lua.State) {
     initModRedis(L)
     // Cipher
     initModCipher(L)
+    // RPC
+    initModRPC(L)
     //
     injectArgs(L)
 

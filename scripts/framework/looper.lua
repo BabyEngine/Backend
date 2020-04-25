@@ -7,6 +7,7 @@ self.UpdateList          = {}
 self.OnGUIFuncList       = {}
 self.FixedUpdateFuncList = {}
 self.LateUpdateFuncList  = {}
+self.TickList            = {}
 
 local delayCallbacks = {}
 
@@ -98,11 +99,37 @@ end
 function self.RemoveLateUpdate(cb)
     self.LateUpdateFuncList[cb] = nil
 end
--- @luadoc FixedUpdate 回调执行器
+-- @luadoc LateUpdateFunc 回调执行器
 LooperManager.LateUpdateFunc = function()
     for k,v in pairs(self.LateUpdateFuncList) do
         if type(v) == 'function' then
             v()
         end
+    end
+end
+-- @luadoc 添加 ticker 回调
+-- @params duration number 间隔秒数量
+-- @params cb function 回调函数
+function self.AddTick( duration, cb )
+    local obj = {}
+    local lastTime = Time.time
+    function obj.OnUpdate()
+        if Time.time - lastTime < duration then return end
+        lastTime = Time.time
+        if cb then
+            cb()
+        end
+    end
+
+    self.TickList[cb] = obj
+    self.AddUpdate(obj.OnUpdate)
+end
+-- @luadoc 删除 ticker 回调
+-- @params cb function 回调函数
+function self.RemoveTick( cb )
+    local obj = self.TickList[cb]
+    if obj then
+        self.RemoveUpdate(obj.OnUpdate)
+        self.TickList[cb] = nil
     end
 end
