@@ -18,11 +18,14 @@ import (
 
 var (
     app *game.Application
+    Version string = "v00.00.00"
 )
 
 func main() {
     cmd := os.Args[1]
     switch cmd {
+    case "version":
+        fmt.Println(Version)
     case "run":
         runLuaApp()
     case "get":
