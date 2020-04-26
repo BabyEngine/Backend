@@ -17,8 +17,7 @@ before_script:
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then FILE_NAME=windows.exe ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cd scripts && tar cvf ../bin/framework.tar framework; tar cvf ../bin/games.tar games; cd .. ; fi
 script:
-  - git describe --exact-match HEAD
-  - if [ $? -eq 0 ]; then version_flag="-X 'main.Version=`git describe --exact-match HEAD`'"; else version_flag="-X 'main.Version=v0.0.0'"; fi
+  - git describe --exact-match HEAD; if [ $? -eq 0 ]; then version_flag="-X 'main.Version=`git describe --exact-match HEAD`'"; else version_flag="-X 'main.Version=v0.0.0'"; fi
   - echo $version_flag
   - go build -ldflags $version_flag -o bin/GameApp-"$FILE_NAME" cmd/GameApp/main.go
   - ls -alh ./
