@@ -19,7 +19,8 @@ before_script:
 script:
   - git describe --exact-match HEAD
   - if [ $? -eq 0 ]; then version_flag="-X 'main.Version=`git describe --exact-match HEAD`'"; else version_flag="-X 'main.Version=v0.0.0'"; fi
-  - go build -ldflags "$version_flag" -o bin/GameApp-"$FILE_NAME" cmd/GameApp/main.go
+  - echo $version_flag
+  - go build -ldflags $version_flag -o bin/GameApp-"$FILE_NAME" cmd/GameApp/main.go
   - ls -alh ./
   - ls -alh bin
 install:
