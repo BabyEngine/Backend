@@ -34,20 +34,21 @@ func (s *Server) ListenServeTLS(address string, crt string, key string) error {
     }
     s.rpcServer = rpc.NewServer()
     s.rpcServer.Register(&s.rpc)
-    s.rpcServer.HandleHTTP(rpc.DefaultRPCPath, rpc.DefaultDebugPath)
+    s.rpcServer.HandleHTTP("/rpc", rpc.DefaultDebugPath)
     ln, err := net.Listen("tcp", address)
     if err != nil {
         return err
     }
     s.closer = ln
-    s.httpServer = &http.Server{Addr: address, Handler: s.rpcServer}
-    s.httpServer.Serve(ln)
+    s.httpServer = &http.Server{
+        Addr:    address,
+        Handler: s.rpcServer,
+    }
 
     if crt != "" && key != "" {
-        return s.httpServer.ListenAndServeTLS(crt, key)
+        return s.httpServer.ServeTLS(ln, crt, key)
     } else {
-
-        return s.httpServer.ListenAndServe()
+        return s.httpServer.Serve(ln)
     }
 }
 
