@@ -4,7 +4,7 @@ import (
     "bufio"
     "bytes"
     "fmt"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/events"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
@@ -39,6 +39,8 @@ func (app *Application) Init(L *lua.State) {
     L.SetGlobal("BabyEngine")
     // init App
     initModApp(L)
+    // Logger
+    initModLogger(L)
     // KV 表
     initModKV(L)
     // Net 表
@@ -81,7 +83,7 @@ print=function(...)
     if __log_trace__ then
         msg = msg .. '\n' .. debug.traceback()
     end
-    BabyEngine.App.Log(msg)
+    BabyEngine.Logger.Debug(msg)
 end
 
 `
@@ -129,7 +131,7 @@ func (app *Application) Start() {
         }
         L.SetTop(0)
         if err := L.DoString(luaCode); err != nil {
-            debugging.Log(err, "\n", luaCode)
+            logger.Debug(err, "\n", luaCode)
         }
     }
     updateTimer()
@@ -144,7 +146,7 @@ func (app *Application) Start() {
             L.RawGeti(lua.LUA_REGISTRYINDEX, ref)
             if L.IsFunction(-1) {
                 if err := L.Call(0, 0); err != nil {
-                    debugging.Log(err)
+                    logger.Debug(err)
                 }
             }
         }
@@ -176,7 +178,7 @@ func (app *Application) Start() {
             go func(cmdStr string) {
                 app.eventSys.OnMainThread(func() {
                     if err := L.DoString(cmdStr); err !=nil {
-                        debugging.Logf("%v", err)
+                        logger.Debugf("%v", err)
                     }
                     wgCmd.Done()
                 })

@@ -3,7 +3,7 @@ package networking
 import "C"
 import (
     "encoding/json"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "io/ioutil"
     "net/http"
     "strconv"
@@ -100,7 +100,7 @@ func (c *mHTTPClient) RunCmd(cmd string, args []string) string {
             if js, err := json.Marshal(c.r.Header); err == nil {
                 return string(js)
             } else {
-                debugging.Log(err)
+                logger.Debug(err)
             }
         }
         return c.r.Header.Get(key)
@@ -109,7 +109,7 @@ func (c *mHTTPClient) RunCmd(cmd string, args []string) string {
             if data, err := ioutil.ReadAll(c.r.Body); err == nil {
                 return string(data)
             } else {
-                debugging.Log(err)
+                logger.Debug(err)
             }
         }
         if n, err := strconv.Atoi(key); err == nil {
@@ -117,10 +117,10 @@ func (c *mHTTPClient) RunCmd(cmd string, args []string) string {
             if n, err := c.r.Body.Read(buff); err == nil {
                 return string(buff[:n])
             } else {
-                debugging.Log(err)
+                logger.Debug(err)
             }
         } else {
-            debugging.Log(err)
+            logger.Debug(err)
         }
     case "method":
         return c.r.Method

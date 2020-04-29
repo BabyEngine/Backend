@@ -1,7 +1,7 @@
 package game
 
 import (
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/kv"
     "github.com/DGHeroin/golua/lua"
     "time"
@@ -48,7 +48,7 @@ func gRedisGet(L *lua.State) int {
     }
     key := L.ToString(2)
     if val, err := r.Get(key); err != nil {
-        debugging.Logf("%v", err)
+        logger.Debugf("%v", err)
         return 0
     } else {
         L.PushString(val)

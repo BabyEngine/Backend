@@ -2,7 +2,7 @@ package game
 
 import (
     "errors"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/rpc"
     "github.com/DGHeroin/golua/lua"
     "sync"
@@ -47,7 +47,7 @@ func gRPCNewServer(L *lua.State) int {
     address := L.ToString(1)
     ref := L.Ref(lua.LUA_REGISTRYINDEX)
     if L.Type(-1) == lua.LUA_TFUNCTION {
-        debugging.Log("gRPCNewServer args error")
+        logger.Debug("gRPCNewServer args error")
         return 0
     }
     srv := rpcServer{}
@@ -71,7 +71,7 @@ func gRPCNewServer(L *lua.State) int {
                 })
 
                 if err := L.Call(3, 0); err != nil {
-                    debugging.Log("rpc invoke error:", err)
+                    logger.Debug("rpc invoke error:", err)
                     wg.Done()
                 }
 
@@ -85,7 +85,7 @@ func gRPCNewServer(L *lua.State) int {
     })
     go func() {
         if err := srv.server.ListenServe(address); err != nil {
-            debugging.Log(err)
+            logger.Debug(err)
         }
     }()
     L.PushGoStruct(srv)
@@ -157,7 +157,7 @@ func gRPCClientCall(L *lua.State) int {
             })
         }()
     } else {
-        debugging.Log("args err")
+        logger.Debug("args err")
     }
     return 0
 }

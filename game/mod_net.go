@@ -3,7 +3,7 @@ package game
 import (
     "context"
     "fmt"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
     "sync"
@@ -109,7 +109,7 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
                 networking.WithTLS(flags["ssl_key"], flags["ssl_cert"]),
                 networking.WithArgs(flags),
                 networking.WithHandler(h)); err != nil {
-                debugging.Log(err)
+                logger.Debug(err)
             }
         }()
         return h
@@ -128,7 +128,7 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
                 networking.WithTLS(flags["ssl_key"], flags["ssl_cert"]),
                 networking.WithArgs(flags),
                 networking.WithHandler(h)); err != nil {
-                debugging.Log(err)
+                logger.Debug(err)
             }
         }()
         return h
@@ -242,7 +242,7 @@ func (h *MessageServerHandler) Init(app *Application) {
 func (m *MessageServerHandler) OnNew(client networking.Client) {
     id := atomic.AddInt64(&m.clientId, 1)
     client.SetId(id)
-    debugging.LogIff(EnableDebug, "OnNew:%v", client)
+    logger.DebugIff(EnableDebug, "OnNew:%v", client)
     m.app.eventSys.
         OnMainThread(func() {
             m.clients[client.Id()] = client
@@ -251,14 +251,14 @@ func (m *MessageServerHandler) OnNew(client networking.Client) {
             if L.Type(-1) == lua.LUA_TFUNCTION {
                 L.PushInteger(client.Id())
                 if err := L.Call(1, 0); err != nil {
-                    debugging.Log(err)
+                    logger.Debug(err)
                 }
             }
         })
 }
 
 func (h *MessageServerHandler) OnData(client networking.Client, data []byte) {
-    debugging.LogIff(EnableDebug, "OnData:%v %v", client, data)
+    logger.DebugIff(EnableDebug, "OnData:%v %v", client, data)
     if data == nil || len(data) == 0 {
         return
     }
@@ -271,14 +271,14 @@ func (h *MessageServerHandler) OnData(client networking.Client, data []byte) {
                 L.PushBytes(data)
 
                 if err := L.Call(2, 0); err != nil {
-                    debugging.Log(err)
+                    logger.Debug(err)
                 }
             }
         })
 }
 
 func (h *MessageServerHandler) OnClose(client networking.Client) {
-    debugging.LogIff(EnableDebug, "OnClose:%v", client)
+    logger.DebugIff(EnableDebug, "OnClose:%v", client)
     h.CloseClient(client.Id())
     h.app.eventSys.
         OnMainThread(func() {
@@ -287,14 +287,14 @@ func (h *MessageServerHandler) OnClose(client networking.Client) {
             if L.Type(-1) == lua.LUA_TFUNCTION {
                 L.PushInteger(client.Id())
                 if err := L.Call(1, 0); err != nil {
-                    debugging.Log(err)
+                    logger.Debug(err)
                 }
             }
         })
 }
 
 func (h *MessageServerHandler) OnError(client networking.Client, err error) {
-    debugging.LogIff(EnableDebug, "OnError:%v %v", client, err)
+    logger.DebugIff(EnableDebug, "OnError:%v %v", client, err)
     h.app.eventSys.
         OnMainThread(func() {
             L := h.L
@@ -303,14 +303,14 @@ func (h *MessageServerHandler) OnError(client networking.Client, err error) {
                 L.PushInteger(client.Id())
                 L.PushString(fmt.Sprint(err))
                 if err := L.Call(2, 0); err != nil {
-                    debugging.Log(err)
+                    logger.Debug(err)
                 }
             }
         })
 
 }
 func (h *MessageServerHandler) OnRequest(client networking.Client, data []byte) []byte {
-    debugging.LogIff(EnableDebug, "OnRequest:%v %v", client, data)
+    logger.DebugIff(EnableDebug, "OnRequest:%v %v", client, data)
     var (
         wg     sync.WaitGroup
         result []byte
@@ -333,7 +333,7 @@ func (h *MessageServerHandler) OnRequest(client networking.Client, data []byte) 
                 L.PushBytes(data)
                 L.PushGoFunction(respFunc)
                 if err := L.Call(3, 0); err != nil {
-                    debugging.Log(err)
+                    logger.Debug(err)
                     wg.Done()
                 }
             }
@@ -373,7 +373,7 @@ func (h *MessageServerHandler) SendClientData(clientId int64, data []byte) {
     h.clientM.RUnlock()
     if ok {
         if err := cli.SendData(data); err != nil {
-            debugging.Log(err)
+            logger.Debug(err)
         }
     }
 }
@@ -383,7 +383,7 @@ func (h *MessageServerHandler) SendClientData(clientId int64, data []byte) {
 //    h.clientM.RUnlock()
 //    if ok {
 //        if err := cli.SendRaw(op, data); err != nil {
-//            debugging.Log(err)
+//            logger.Debug(err)
 //        }
 //    }
 //}
@@ -394,7 +394,7 @@ func (h *MessageServerHandler) SendClientRawDataEvent(clientId int64, e string, 
     h.clientM.RUnlock()
     if ok {
         if err := cli.SendRawEvent(e, op, data); err != nil {
-            debugging.Log(err)
+            logger.Debug(err)
         }
     }
 }

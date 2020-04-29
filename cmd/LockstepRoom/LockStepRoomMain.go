@@ -1,7 +1,7 @@
 package main
 
-import "github.com/BabyEngine/Backend/debugging"
+import "github.com/BabyEngine/Backend/logger"
 
 func main()  {
-    debugging.Log("开始")
+    logger.Debug("开始")
 }

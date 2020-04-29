@@ -3,7 +3,7 @@ package networking
 import (
     "encoding/base64"
     "fmt"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/googollee/go-socket.io"
     "github.com/gorilla/websocket"
     "io"
@@ -33,12 +33,12 @@ func (s *mSocketIOServer) Init() {
 func (s *mSocketIOServer) Serve(address string) error {
     server, err := socketio.NewServer(nil)
     if err != nil {
-        debugging.Logf("%v", err)
+        logger.Debugf("%v", err)
         return err
     }
     ln, err := net.Listen("tcp", address)
     if err != nil {
-        debugging.Logf("%v", err)
+        logger.Debugf("%v", err)
         return err
     }
     s.server = server
@@ -126,7 +126,7 @@ func (s *mSocketIOServer) postServe(ln net.Listener) {
             conn.SetContext(msg)
             data, err := base64.StdEncoding.DecodeString(msg)
             if err != nil {
-                debugging.Log("socket.io data format error:", err)
+                logger.Debug("socket.io data format error:", err)
                 return nil
             }
             if cli := s.opts.Handler.GetClientByKey(conn); cli != nil {
@@ -172,11 +172,11 @@ func (s *mSocketIOServer) postServe(ln net.Listener) {
 
     if s.opts.TLSEnable {
         if err := http.ServeTLS(ln, server, s.opts.TLSCert, s.opts.TLSKey); err != nil {
-            debugging.Log(err)
+            logger.Debug(err)
         }
     } else {
         if err := http.Serve(ln, server); err != nil {
-            debugging.Log(err)
+            logger.Debug(err)
         }
     }
 }

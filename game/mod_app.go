@@ -28,10 +28,6 @@ func initModApp(L *lua.State) {
         L.PushGoFunction(gSetFPS)
         L.SetTable(-3)
 
-        L.PushString("Log")
-        L.PushGoFunction(gAppLog)
-        L.SetTable(-3)
-
         L.PushString("GetEnv")
         L.PushGoFunction(gGetEnv)
         L.SetTable(-3)

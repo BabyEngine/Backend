@@ -2,7 +2,7 @@ package game
 
 import (
     "fmt"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/kv"
     "github.com/DGHeroin/golua/lua"
 )
@@ -107,7 +107,7 @@ func gKVGet(L *lua.State) int {
                         L.PushNil()
                     }
                     if err := L.Call(2, 0); err != nil {
-                        debugging.Log(err)
+                        logger.Debug(err)
                     }
                 }
             })

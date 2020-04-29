@@ -2,7 +2,7 @@ package networking
 
 import (
     "fmt"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "io"
     "net"
     "net/http"
@@ -41,11 +41,11 @@ func (s *mHTTPServer) Serve(addr string) error {
     go func() {
         if s.opts.TLSEnable {
             if err := srv.ServeTLS(ln, s.opts.TLSCert, s.opts.TLSKey); err != nil {
-                debugging.Log(err)
+                logger.Debug(err)
             }
         } else {
             if err := srv.Serve(ln); err != nil {
-                debugging.Log(err)
+                logger.Debug(err)
             }
         }
     }()

@@ -3,7 +3,7 @@ package main
 import (
     "archive/tar"
     "fmt"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/game"
     "github.com/BabyEngine/Backend/hotzone"
     "github.com/DGHeroin/golua/lua"
@@ -31,7 +31,7 @@ func main() {
     case "get":
         runGetAction()
     default:
-        debugging.Logf("no such action")
+        logger.Warn("no such action")
     }
 }
 
@@ -45,20 +45,20 @@ func runLuaApp() {
     defer L.Close()
 
     if len(os.Args) == 1 {
-        debugging.Logf("no input file")
+        logger.Warn("no input file")
         return
     }
 
     app.Init(L)
     if err := L.DoFile(os.Args[2]); err != nil {
-        debugging.Log(err)
+        logger.Warn(err)
     }
     app.Start()
 }
 
 func runGetAction() {
     if len(os.Args) < 3 {
-        debugging.Logf("args error")
+        logger.Warn("args error")
         return
     }
     urlTemplate := []string{
@@ -78,12 +78,12 @@ func runGetAction() {
         what = os.Args[3]
         tokens = strings.Split(what, "@")
         if len(tokens) < 1 {
-            debugging.Logf("package not found")
+            logger.Warn("package not found")
         }
     } else {
         tokens = strings.Split(what, "@")
         if len(tokens) < 1 {
-            debugging.Logf("package not found")
+            logger.Warn("package not found")
         }
     }
 
@@ -98,7 +98,7 @@ func runGetAction() {
         version = tokens[1]
     }
 
-    //debugging.Logf("%s %s", packageName, version)
+    //logger.Debugf("%s %s", packageName, version)
     if version == "" { // download latest version
         downloadUrl = fmt.Sprintf(urlTemplate[0], packageName)
     } else { // download version
@@ -106,18 +106,18 @@ func runGetAction() {
     }
     resp, err := http.Get(downloadUrl)
     if err != nil {
-       debugging.Logf("download error", err)
+       logger.Warnf("download error", err)
        return
     }
     if resp.StatusCode != http.StatusOK {
-       debugging.Logf("%s %s", resp.Status, downloadUrl)
+       logger.Warnf("%s %s", resp.Status, downloadUrl)
        return
     }
 
     defer resp.Body.Close()
     data, err := ioutil.ReadAll(resp.Body)
     if err != nil {
-      debugging.Logf("read data error:%v", err)
+      logger.Warnf("read data error:%v", err)
       return
     }
     if data == nil {
@@ -126,19 +126,19 @@ func runGetAction() {
     os.Mkdir(".tmp", 0666)
     dname, err := ioutil.TempDir(".tmp", "BabyEngine")
     if err != nil {
-      debugging.Logf("create temp dir error:%v", err)
+      logger.Warnf("create temp dir error:%v", err)
       return
     }
     defer os.RemoveAll(".tmp")
     fname := filepath.Join(dname, packageName)
     err = ioutil.WriteFile(fname, data, 0666)
     if err != nil {
-      debugging.Logf("write file error:%v", err)
+      logger.Warnf("write file error:%v", err)
       return
     }
 
     if err := untar(fname, "./"); err != nil {
-        debugging.Logf("%s", err)
+        logger.Warnf("%s", err)
     }
 }
 

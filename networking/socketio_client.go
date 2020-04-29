@@ -3,7 +3,7 @@ package networking
 import (
     "encoding/binary"
     "fmt"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     socketio "github.com/googollee/go-socket.io"
     "sync/atomic"
     "time"
@@ -126,7 +126,7 @@ EXITLOOP:
             default:
 
             }
-            debugging.Log("replay outside")
+            logger.Debug("replay outside")
             msg.reply<-nil
         }
     }

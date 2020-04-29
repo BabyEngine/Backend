@@ -2,7 +2,7 @@ package hotzone
 
 import (
     "fmt"
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/game"
     "github.com/gorilla/websocket"
     "log"
@@ -14,7 +14,7 @@ var (
     HTTPData = `<!DOCTYPE html>
 <html>
 <head>
-    <title>Websocket Log Viewer</title>
+    <title>Websocket Debug Viewer</title>
     <meta charset="UTF-8">
     <link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
     <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
@@ -241,7 +241,7 @@ func EnableHotRestart(app *game.Application, restartCb func()) {
     defer func() {
         isRunning = false
     }()
-    debugging.Logf("Enable Hot Reload")
+    logger.Debug("Enable Hot Reload")
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         enableCors(&w)
         w.Write([]byte(HTTPData))
@@ -254,7 +254,7 @@ func EnableHotRestart(app *game.Application, restartCb func()) {
     })
     http.HandleFunc("/log", showLog)
     if err := http.ListenAndServe(":80", nil); err != nil {
-        debugging.Log("start hot restart fail:", err)
+        logger.Debug("start hot restart fail:", err)
     }
 }
 

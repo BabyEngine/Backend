@@ -1,7 +1,7 @@
 package rpc
 
 import (
-    "github.com/BabyEngine/Backend/debugging"
+    "github.com/BabyEngine/Backend/logger"
     "net/rpc"
     "sync"
 )
@@ -47,7 +47,7 @@ func (c *Client) Call(action string, data []byte) (r Reply, err error) {
         c.status = rpcClientStatusInvalid
         if err == rpc.ErrShutdown {
             if err := c.connect(); err != nil {
-                debugging.Log("rpc client auto connect error", err)
+                logger.Debug("rpc client auto connect error", err)
             }
         }
     }
