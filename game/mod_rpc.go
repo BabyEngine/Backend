@@ -2,6 +2,7 @@ package game
 
 import (
     "errors"
+    "fmt"
     "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/rpc"
     "github.com/DGHeroin/golua/lua"
@@ -10,29 +11,33 @@ import (
 
 func initModRPC(L *lua.State) {
     L.GetGlobal("BabyEngine")
-    L.PushString("JSONRPC")
+    L.PushString("RPC")
     {
         // 创建子表
         L.CreateTable(0, 1)
 
         L.PushString("NewClient")
-        L.PushGoFunction(gJSONRPCNewClient)
+        L.PushGoFunction(gRPCNewClient)
+        L.SetTable(-3)
+
+        L.PushString("Connect")
+        L.PushGoFunction(gRPCClientConnect)
         L.SetTable(-3)
 
         L.PushString("Call")
-        L.PushGoFunction(gJSONRPCClientCall)
+        L.PushGoFunction(gRPCClientCall)
         L.SetTable(-3)
 
         L.PushString("StopClient")
-        L.PushGoFunction(gJSONRPCStopClient)
+        L.PushGoFunction(gRPCStopClient)
         L.SetTable(-3)
 
         L.PushString("NewServer")
-        L.PushGoFunction(gJSONRPCNewServer)
+        L.PushGoFunction(gRPCNewServer)
         L.SetTable(-3)
 
         L.PushString("StopServer")
-        L.PushGoFunction(gJSONRPCStopServer)
+        L.PushGoFunction(gRPCStopServer)
         L.SetTable(-3)
 
     }
@@ -40,11 +45,13 @@ func initModRPC(L *lua.State) {
 }
 
 type rpcServer struct {
-    server *rpc.JSONRPCServer
+    //server *rpc.JSONRPCServer
+    server rpc.Server
 }
 
-func gJSONRPCNewServer(L *lua.State) int {
-    address := L.ToString(1)
+func gRPCNewServer(L *lua.State) int {
+    t := L.ToString(1)
+    address := L.ToString(2)
     ref := L.Ref(lua.LUA_REGISTRYINDEX)
     if L.Type(-1) == lua.LUA_TFUNCTION {
         logger.Debug("gJSONRPCNewServer args error")
@@ -53,7 +60,7 @@ func gJSONRPCNewServer(L *lua.State) int {
     srv := rpcServer{}
     app := GetApplication(L)
 
-    srv.server = rpc.NewJSONRPCServer(func(request rpc.Request, reply *rpc.Reply) error {
+    srv.server = rpc.NewServer(t, func(request rpc.Request, reply *rpc.Reply) error {
         var err error
         wg := sync.WaitGroup{}
         wg.Add(1)
@@ -92,11 +99,11 @@ func gJSONRPCNewServer(L *lua.State) int {
     return 1
 }
 
-func gJSONRPCStopServer(L *lua.State) int {
+func gRPCStopServer(L *lua.State) int {
     ptr := L.ToGoStruct(1)
     if ptr, ok := ptr.(*rpcServer); ok {
         if ptr.server != nil {
-            if err := ptr.server.Stop(); err != nil {
+            if err := ptr.server.Close(); err != nil {
                 L.PushString(err.Error())
                 return 1
             }
@@ -106,15 +113,16 @@ func gJSONRPCStopServer(L *lua.State) int {
 }
 
 type rpcClient struct {
-    client *rpc.JSONRPCClient
+    client rpc.Client
 }
 
-func gJSONRPCNewClient(L *lua.State) int {
-    address := L.ToString(1)
-    cli, err := rpc.NewJSONRPCClient(address)
-    if err != nil {
+func gRPCNewClient(L *lua.State) int {
+    t := L.ToString(1)
+    address := L.ToString(2)
+    cli := rpc.NewClient(t, address)
+    if cli == nil {
         L.PushNil()
-        L.PushString(err.Error())
+        L.PushString(fmt.Sprintf("not support rpc(%s) type", t))
         return 2
     }
     c := &rpcClient{client: cli}
@@ -123,15 +131,15 @@ func gJSONRPCNewClient(L *lua.State) int {
     return 2
 }
 
-func gJSONRPCStopClient(L *lua.State) int {
+func gRPCStopClient(L *lua.State) int {
     ptr := L.ToGoStruct(1)
     if c, ok := ptr.(*rpcClient); ok {
-        c.client.Stop()
+        c.client.Disconnect()
     }
     return 0
 }
 
-func gJSONRPCClientCall(L *lua.State) int {
+func gRPCClientCall(L *lua.State) int {
     ptr := L.ToGoStruct(1)
     action := L.ToString(2)
     data := L.ToBytes(3)
@@ -152,7 +160,9 @@ func gJSONRPCClientCall(L *lua.State) int {
                         L.PushBytes(r.Data)
                         L.PushNil()
                     }
-                    L.Call(3, 0)
+                    if err := L.Call(3, 0); err != nil {
+                        logger.Warn(err)
+                    }
                 }
             })
         }()
@@ -160,4 +170,23 @@ func gJSONRPCClientCall(L *lua.State) int {
         logger.Debug("args err")
     }
     return 0
+}
+
+func gRPCClientConnect(L *lua.State) int {
+    ptr := L.ToGoStruct(1)
+
+    if c, ok := ptr.(*rpcClient); ok {
+        if err := c.client.Connect(); err != nil {
+            L.PushBoolean(false)
+            L.PushString(err.Error())
+        } else {
+            L.PushBoolean(true)
+            L.PushNil()
+        }
+    } else {
+        L.PushBoolean(false)
+        L.PushString("args error")
+    }
+
+    return 2
 }

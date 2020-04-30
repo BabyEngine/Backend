@@ -1,6 +1,6 @@
-jsonrpc = jsonrpc or {}
+rpc = rpc or {}
 
-function jsonrpc.NewServer()
+function rpc.NewServer(t)
     local self = {}
 
     local function handleFunc(action, data, respFunc)
@@ -18,24 +18,22 @@ function jsonrpc.NewServer()
     end
 
     function self.Listen( address )
-        BabyEngine.JSONRPC.NewServer(address, handleFunc)
+        BabyEngine.RPC.NewServer(t, address, handleFunc)
     end
 
     return self
 end
 
-function jsonrpc.NewClient()
+function rpc.NewClient(t, address)
     local self = {}
     local clientPtr = nil
-    function self.Connect( address )
-        local client, err = BabyEngine.JSONRPC.NewClient(address)
-        if err ~= nil then
-            return err
-        end
-        clientPtr = client
+    clientPtr, err = BabyEngine.RPC.NewClient(t, address)
+    function self.Connect()
+        -- return ok, errStr
+        return BabyEngine.RPC.Connect(clientPtr)
     end
     function self.Call( action, data, cb )
-        BabyEngine.JSONRPC.Call(clientPtr, action, data, function(code, data, err)
+        BabyEngine.RPC.Call(clientPtr, action, data, function(code, data, err)
             if type(cb) == 'function' then
                 cb(code, data, err)
             end

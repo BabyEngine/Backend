@@ -56,6 +56,6 @@ func (s *JSONRPCServer) ListenServeTLS(address string, crt string, key string) e
     }
 }
 
-func (s *JSONRPCServer) Stop() error {
+func (s *JSONRPCServer) Close() error {
     return s.closer.Close()
 }

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+service GRPCService {
+    //rpc Send (stream GRPCRequest) returns (stream GRPCResponse) {}
+    rpc Call (GRPCRequest) returns (GRPCResponse) {}
+}
+message GRPCRequest {
+    string action = 1;
+    bytes  data   = 2;
+}
+message GRPCResponse {
+    int32 code = 1;
+    bytes data = 2;
+}
+

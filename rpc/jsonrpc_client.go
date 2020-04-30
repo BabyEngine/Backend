@@ -13,17 +13,24 @@ type JSONRPCClient struct {
     address string
 }
 
-func NewJSONRPCClient(address string) (*JSONRPCClient, error) {
+func NewJSONRPCClient(address string) *JSONRPCClient {
     client := &JSONRPCClient{
         address: address,
     }
-    return client, nil
+    return client
+}
+
+func (c *JSONRPCClient) Connect() error {
+    return nil
+}
+func (c *JSONRPCClient) Disconnect() error {
+    return nil
 }
 
 func (c *JSONRPCClient) Call(action string, data []byte) (r Reply, err error) {
-    var(
+    var (
         message []byte
-        resp *http.Response
+        resp    *http.Response
     )
     message, err = json.EncodeClientRequest("RPC.Call", Request{Action: action, Data: data})
     if err != nil {
