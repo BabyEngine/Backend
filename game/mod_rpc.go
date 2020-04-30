@@ -16,23 +16,23 @@ func initModRPC(L *lua.State) {
         L.CreateTable(0, 1)
 
         L.PushString("NewClient")
-        L.PushGoFunction(gRPCNewClient)
+        L.PushGoFunction(gJSONRPCNewClient)
         L.SetTable(-3)
 
         L.PushString("Call")
-        L.PushGoFunction(gRPCClientCall)
+        L.PushGoFunction(gJSONRPCClientCall)
         L.SetTable(-3)
 
         L.PushString("StopClient")
-        L.PushGoFunction(gRPCStopClient)
+        L.PushGoFunction(gJSONRPCStopClient)
         L.SetTable(-3)
 
         L.PushString("NewServer")
-        L.PushGoFunction(gRPCNewServer)
+        L.PushGoFunction(gJSONRPCNewServer)
         L.SetTable(-3)
 
         L.PushString("StopServer")
-        L.PushGoFunction(gRPCStopServer)
+        L.PushGoFunction(gJSONRPCStopServer)
         L.SetTable(-3)
 
     }
@@ -40,20 +40,20 @@ func initModRPC(L *lua.State) {
 }
 
 type rpcServer struct {
-    server *rpc.Server
+    server *rpc.JSONRPCServer
 }
 
-func gRPCNewServer(L *lua.State) int {
+func gJSONRPCNewServer(L *lua.State) int {
     address := L.ToString(1)
     ref := L.Ref(lua.LUA_REGISTRYINDEX)
     if L.Type(-1) == lua.LUA_TFUNCTION {
-        logger.Debug("gRPCNewServer args error")
+        logger.Debug("gJSONRPCNewServer args error")
         return 0
     }
     srv := rpcServer{}
     app := GetApplication(L)
 
-    srv.server = rpc.NewServer(func(request rpc.Request, reply *rpc.Reply) error {
+    srv.server = rpc.NewJSONRPCServer(func(request rpc.Request, reply *rpc.Reply) error {
         var err error
         wg := sync.WaitGroup{}
         wg.Add(1)
@@ -92,7 +92,7 @@ func gRPCNewServer(L *lua.State) int {
     return 1
 }
 
-func gRPCStopServer(L *lua.State) int {
+func gJSONRPCStopServer(L *lua.State) int {
     ptr := L.ToGoStruct(1)
     if ptr, ok := ptr.(*rpcServer); ok {
         if ptr.server != nil {
@@ -106,12 +106,12 @@ func gRPCStopServer(L *lua.State) int {
 }
 
 type rpcClient struct {
-    client *rpc.Client
+    client *rpc.JSONRPCClient
 }
 
-func gRPCNewClient(L *lua.State) int {
+func gJSONRPCNewClient(L *lua.State) int {
     address := L.ToString(1)
-    cli, err := rpc.NewClient(address)
+    cli, err := rpc.NewJSONRPCClient(address)
     if err != nil {
         L.PushNil()
         L.PushString(err.Error())
@@ -123,7 +123,7 @@ func gRPCNewClient(L *lua.State) int {
     return 2
 }
 
-func gRPCStopClient(L *lua.State) int {
+func gJSONRPCStopClient(L *lua.State) int {
     ptr := L.ToGoStruct(1)
     if c, ok := ptr.(*rpcClient); ok {
         c.client.Stop()
@@ -131,7 +131,7 @@ func gRPCStopClient(L *lua.State) int {
     return 0
 }
 
-func gRPCClientCall(L *lua.State) int {
+func gJSONRPCClientCall(L *lua.State) int {
     ptr := L.ToGoStruct(1)
     action := L.ToString(2)
     data := L.ToBytes(3)

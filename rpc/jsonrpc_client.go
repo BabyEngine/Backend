@@ -8,19 +8,19 @@ import (
     "sync"
 )
 
-type Client struct {
+type JSONRPCClient struct {
     mutex   sync.RWMutex
     address string
 }
 
-func NewClient(address string) (*Client, error) {
-    client := &Client{
+func NewJSONRPCClient(address string) (*JSONRPCClient, error) {
+    client := &JSONRPCClient{
         address: address,
     }
     return client, nil
 }
 
-func (c *Client) Call(action string, data []byte) (r Reply, err error) {
+func (c *JSONRPCClient) Call(action string, data []byte) (r Reply, err error) {
     var(
         message []byte
         resp *http.Response
@@ -38,6 +38,6 @@ func (c *Client) Call(action string, data []byte) (r Reply, err error) {
     return
 }
 
-func (c *Client) Stop() error {
+func (c *JSONRPCClient) Stop() error {
     return nil
 }

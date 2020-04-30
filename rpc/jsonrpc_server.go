@@ -9,28 +9,28 @@ import (
     "github.com/gorilla/rpc/json"
 )
 
-type Server struct {
+type JSONRPCServer struct {
     rpcServer  *rpc.Server
     httpServer *http.Server
     rpc        RPC
     closer     io.Closer
 }
 
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *JSONRPCServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     io.WriteString(w, "rpc online!")
 }
 
-func NewServer(cb func(request Request, reply *Reply) error) *Server {
-    s := &Server{}
+func NewJSONRPCServer(cb func(request Request, reply *Reply) error) *JSONRPCServer {
+    s := &JSONRPCServer{}
     s.rpc.Handler = cb
     return s
 }
 
-func (s *Server) ListenServe(address string) error {
+func (s *JSONRPCServer) ListenServe(address string) error {
     return s.ListenServeTLS(address, "", "")
 }
 
-func (s *Server) ListenServeTLS(address string, crt string, key string) error {
+func (s *JSONRPCServer) ListenServeTLS(address string, crt string, key string) error {
     rpcServer := rpc.NewServer()
     rpcServer.RegisterCodec(json.NewCodec(), "application/json")
     rpcServer.RegisterCodec(json.NewCodec(), "application/json;charset=UTF-8")
@@ -56,6 +56,6 @@ func (s *Server) ListenServeTLS(address string, crt string, key string) error {
     }
 }
 
-func (s *Server) Stop() error {
+func (s *JSONRPCServer) Stop() error {
     return s.closer.Close()
 }
