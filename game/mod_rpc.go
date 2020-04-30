@@ -10,7 +10,7 @@ import (
 
 func initModRPC(L *lua.State) {
     L.GetGlobal("BabyEngine")
-    L.PushString("RPC")
+    L.PushString("JSONRPC")
     {
         // 创建子表
         L.CreateTable(0, 1)

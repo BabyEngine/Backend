@@ -4,7 +4,9 @@ import (
     "io"
     "net"
     "net/http"
-    "net/rpc"
+    "github.com/gorilla/mux"
+    "github.com/gorilla/rpc"
+    "github.com/gorilla/rpc/json"
 )
 
 type Server struct {
@@ -29,12 +31,14 @@ func (s *Server) ListenServe(address string) error {
 }
 
 func (s *Server) ListenServeTLS(address string, crt string, key string) error {
-    if err := rpc.Register(&s.rpc); err != nil {
-        return err
-    }
-    s.rpcServer = rpc.NewServer()
-    s.rpcServer.Register(&s.rpc)
-    s.rpcServer.HandleHTTP("/rpc", rpc.DefaultDebugPath)
+    rpcServer := rpc.NewServer()
+    rpcServer.RegisterCodec(json.NewCodec(), "application/json")
+    rpcServer.RegisterCodec(json.NewCodec(), "application/json;charset=UTF-8")
+    rpcServer.RegisterService(&s.rpc, "")
+    r := mux.NewRouter()
+    r.Handle("/jsonrpc", rpcServer)
+
+    s.rpcServer = rpcServer
     ln, err := net.Listen("tcp", address)
     if err != nil {
         return err

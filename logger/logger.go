@@ -63,7 +63,14 @@ func timestamp() string {
 }
 
 func writeLog(level int, v ...interface{}) {
-    writeLogf(level, "%v", fmt.Sprint(v...))
+    format := "%v"
+    if level == 1 {
+        fmt.Fprintf(os.Stdout, "%s [debug] %s %v\n", timestamp(), shortFile(), fmt.Sprintf(format, v...))
+    } else if level == 2 {
+        fmt.Fprintf(os.Stdout, "%s [warn] %s %s", timestamp(), shortFile(), fmt.Sprintf(format, v...))
+    } else if level == 3 {
+        fmt.Fprintf(os.Stderr, "%s [error] %s %s\n%s", timestamp(), shortFile(), fmt.Sprintf(format, v...), string(debug.Stack()))
+    }
 }
 
 func writeLogf(level int, format string, v ...interface{}) {

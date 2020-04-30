@@ -1,5 +1,5 @@
-local client = rpc.NewClient()
-local err = client.Connect('127.0.0.1:9981')
+local client = jsonrpc.NewClient()
+local err = client.Connect('http://127.0.0.1:9981')
 if err ~= nil then
     print(err)
     return

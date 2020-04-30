@@ -2,6 +2,7 @@ package rpc
 
 import (
     "errors"
+    "net/http"
 )
 
 var (
@@ -24,9 +25,9 @@ type RPC struct {
     Handler func(request Request, reply *Reply) error
 }
 
-func (r *RPC) Call(request Request, reply *Reply) error {
+func (r *RPC) Call(req *http.Request, request *Request, reply *Reply) error {
     if r.Handler != nil {
-        return r.Handler(request, reply)
+        return r.Handler(*request, reply)
     }
     return ErrorRPCHandler
 }
