@@ -51,6 +51,8 @@ func (app *Application) Init(L *lua.State) {
     initModCipher(L)
     // RPC
     initModRPC(L)
+    // Cron
+    initModCron(L)
     //
     injectArgs(L)
 
