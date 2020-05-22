@@ -140,7 +140,7 @@ func runGetAction() {
       return
     }
     if _, err := os.Stat(".tmp"); os.IsNotExist(err) {
-        if err := os.MkdirAll(".tmp", 0666); err != nil {
+        if err := os.MkdirAll(".tmp", 0755); err != nil {
             panic(err)
         }
     }
@@ -150,12 +150,12 @@ func runGetAction() {
       logger.Warnf("create temp dir error:%v", err)
       return
     }
-    if err := os.Chmod(dname, 0666); err != nil {
+    if err := os.Chmod(dname, 0755); err != nil {
         panic(err)
     }
     defer os.RemoveAll(".tmp")
     fname := filepath.Join(dname, packageName)
-    err = ioutil.WriteFile(fname, data, 0666)
+    err = ioutil.WriteFile(fname, data, 0755)
     if err != nil {
       logger.Warnf("write file error:%v", err)
       return
