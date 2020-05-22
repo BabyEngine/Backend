@@ -22,6 +22,10 @@ var (
 )
 
 func main() {
+    if len(os.Args) == 1 {
+        printHelp()
+        return
+    }
     cmd := os.Args[1]
     switch cmd {
     case "version":
@@ -30,9 +34,21 @@ func main() {
         runLuaApp()
     case "get":
         runGetAction()
+    case "help":
+        printHelp()
     default:
-        logger.Warn("no such action")
+        logger.Warn("no such action\n")
+        printHelp()
     }
+}
+
+func printHelp() {
+    usage:=`
+    version | print current version
+    run main.lua | run a lua file
+    get framework.tar | get package form github repo
+`
+    fmt.Println(usage)
 }
 
 func runLuaApp() {
