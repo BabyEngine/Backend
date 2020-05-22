@@ -139,12 +139,15 @@ func runGetAction() {
     if data == nil {
       return
     }
-    os.Mkdir(".tmp", 0666)
+    if err := os.Mkdir(".tmp", 0666); err != nil {
+        panic(err)
+    }
     dname, err := ioutil.TempDir(".tmp", "BabyEngine")
     if err != nil {
       logger.Warnf("create temp dir error:%v", err)
       return
     }
+    os.Chmod(dname, 0666)
     defer os.RemoveAll(".tmp")
     fname := filepath.Join(dname, packageName)
     err = ioutil.WriteFile(fname, data, 0666)
