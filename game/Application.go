@@ -53,6 +53,8 @@ func (app *Application) Init(L *lua.State) {
     initModRPC(L)
     // Cron
     initModCron(L)
+    // Hash
+    initModHash(L)
     //
     injectArgs(L)
 
