@@ -250,7 +250,8 @@ func (m *MessageServerHandler) OnNew(client networking.Client) {
             L.RawGeti(lua.LUA_REGISTRYINDEX, m.refNew)
             if L.Type(-1) == lua.LUA_TFUNCTION {
                 L.PushInteger(client.Id())
-                if err := L.Call(1, 0); err != nil {
+                L.PushString(client.String())
+                if err := L.Call(2, 0); err != nil {
                     logger.Debug(err)
                 }
             }

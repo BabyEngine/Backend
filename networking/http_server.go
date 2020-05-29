@@ -62,6 +62,7 @@ func (s *mHTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         opts:   s.opts,
     }
     client.init()
+    client.remoteAddr = r.RemoteAddr
     defer func() {
         s.opts.Handler.OnClose(client)
     }()

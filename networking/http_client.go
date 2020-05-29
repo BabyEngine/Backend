@@ -3,6 +3,7 @@ package networking
 import "C"
 import (
     "encoding/json"
+    "fmt"
     "github.com/BabyEngine/Backend/logger"
     "io/ioutil"
     "net/http"
@@ -19,6 +20,7 @@ type mHTTPClient struct {
     stopChan   chan interface{}
     isStopRead bool
     isStop     bool
+    remoteAddr string
 }
 
 func (c *mHTTPClient) init() {
@@ -156,5 +158,9 @@ func (c *mHTTPClient) RunCmd(cmd string, args []string) string {
         return string(data)
     }
     return ""
+}
+
+func (c *mHTTPClient) String() string {
+    return fmt.Sprintf("%s", c.remoteAddr)
 }
 
