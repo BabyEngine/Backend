@@ -3,7 +3,6 @@ package logger
 import (
     "fmt"
     "os"
-    "runtime"
     "runtime/debug"
     "time"
 )
@@ -39,23 +38,29 @@ func init() {
     ErrorIff = e_logIff
     Println = Debug
 }
-func shortFile() string {
-    _, file, line, ok := runtime.Caller(3)
-    if !ok {
-        file = "???"
-        line = 0
-    } else {
-        short := file
-        for i := len(file) - 1; i > 0; i-- {
-            if file[i] == '/' {
-                short = file[i+1:]
-                break
-            }
-        }
-        file = short
-    }
-
-    return fmt.Sprintf("%v:%d", file, line)
+func shortFile(level ... int) string {
+    //n := 3
+    //if len(level) > 0 {
+    //    n = level[0]
+    //}
+    //
+    //_, file, line, ok := runtime.Caller(n)
+    //if !ok {
+    //    file = "???"
+    //    line = 0
+    //} else {
+    //    short := file
+    //    for i := len(file) - 1; i > 0; i-- {
+    //        if file[i] == '/' {
+    //            short = file[i+1:]
+    //            break
+    //        }
+    //    }
+    //    file = short
+    //}
+    //
+    //return fmt.Sprintf(" %v:%d", file, line)
+    return ""
 }
 
 func timestamp() string {
@@ -65,21 +70,21 @@ func timestamp() string {
 func writeLog(level int, v ...interface{}) {
     format := "%v"
     if level == 1 {
-        fmt.Fprintf(os.Stdout, "%s [debug] %s %v\n", timestamp(), shortFile(), fmt.Sprintf(format, v...))
+        fmt.Fprintf(os.Stdout, "%s [debug]%s %v\n", timestamp(), shortFile(4), fmt.Sprintf(format, v...))
     } else if level == 2 {
-        fmt.Fprintf(os.Stdout, "%s [warn] %s %s", timestamp(), shortFile(), fmt.Sprintf(format, v...))
+        fmt.Fprintf(os.Stdout, "%s [warn]%s %s", timestamp(), shortFile(4), fmt.Sprintf(format, v...))
     } else if level == 3 {
-        fmt.Fprintf(os.Stderr, "%s [error] %s %s\n%s", timestamp(), shortFile(), fmt.Sprintf(format, v...), string(debug.Stack()))
+        fmt.Fprintf(os.Stderr, "%s [error]%s %s\n%s", timestamp(), shortFile(4), fmt.Sprintf(format, v...), string(debug.Stack()))
     }
 }
 
 func writeLogf(level int, format string, v ...interface{}) {
     if level == 1 {
-        fmt.Fprintf(os.Stdout, "%s [debug] %s %v\n", timestamp(), shortFile(), fmt.Sprintf(format, v...))
+        fmt.Fprintf(os.Stdout, "%s [debug]%s %v\n", timestamp(), shortFile(4), fmt.Sprintf(format, v...))
     } else if level == 2 {
-        fmt.Fprintf(os.Stdout, "%s [warn] %s %s", timestamp(), shortFile(), fmt.Sprintf(format, v...))
+        fmt.Fprintf(os.Stdout, "%s [warn]%s %s", timestamp(), shortFile(4), fmt.Sprintf(format, v...))
     } else if level == 3 {
-        fmt.Fprintf(os.Stderr, "%s [error] %s %s\n%s", timestamp(), shortFile(), fmt.Sprintf(format, v...), string(debug.Stack()))
+        fmt.Fprintf(os.Stderr, "%s [error]%s %s\n%s", timestamp(), shortFile(4), fmt.Sprintf(format, v...), string(debug.Stack()))
     }
 }
 
