@@ -6,11 +6,11 @@
 ```bash
 1. 下载最新版本
 Linux
-wget https://github.com/BabyEngine/Backend/releases/latest/download/GameApp-linux
+wget https://github.com/BabyEngine/Backend/releases/latest/download/alu-linux -O alu
 macOS
-wget https://github.com/BabyEngine/Backend/releases/latest/download/GameApp-osx
+wget https://github.com/BabyEngine/Backend/releases/latest/download/alu-osx -O alu
 Windows
-wget https://github.com/BabyEngine/Backend/releases/latest/download/GameApp-windows.exe
+wget https://github.com/BabyEngine/Backend/releases/latest/download/alu-windows.exe -O alu
 2. 运行lua
 GameApp-linux run main.lua
 ```
@@ -20,9 +20,9 @@ GameApp-linux run main.lua
 下载框架会自动解压到当前目录
 
 下载最新版本
-GameApp-linux get framework.tar
+alu get framework.tar
 
 下载特定版本
-GameApp-linux get framework.tar@0.0.1
+alu get framework.tar@0.0.1
 
 ```
