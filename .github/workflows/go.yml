@@ -31,4 +31,4 @@ jobs:
         fi
   
     - name: Build
-      run: mkdir -p bin && go build -o bin/GameApp-"$FILE_NAME" cmd/GameApp/main.go
+      run: mkdir -p bin && go build -o bin/alu-"$FILE_NAME" cmd/alu/main.go
