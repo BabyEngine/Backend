@@ -37,8 +37,7 @@ func main() {
     case "help":
         printHelp()
     default:
-        logger.Warn("no such action\n")
-        printHelp()
+        runLuaApp()
     }
 }
 
@@ -54,19 +53,26 @@ func printHelp() {
 func runLuaApp() {
     app = game.NewApp()
     if os.Getenv("HotReload") == "true" {
-        go hotzone.EnableHotRestart(app, runLuaApp)
+       go hotzone.EnableHotRestart(app, runLuaApp)
     }
     L := lua.NewState()
     L.OpenLibs()
     defer L.Close()
 
     if len(os.Args) == 1 {
-        logger.Warn("no input file")
-        return
+       logger.Warn("no input file")
+       return
+    }
+    var file string
+    if len(os.Args) == 2 {
+        file = os.Args[1]
+    } else if len(os.Args) == 3 {
+        file = os.Args[2]
     }
 
     app.Init(L)
-    if err := L.DoFile(os.Args[2]); err != nil {
+
+    if err := L.DoFile(file); err != nil {
         logger.Warn(err)
     }
     app.Start()
