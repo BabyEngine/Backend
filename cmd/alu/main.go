@@ -141,7 +141,7 @@ func runGetAction() {
     }
 
     dname := ".tmp/bbe"
-    defer os.RemoveAll(dname)
+    defer os.RemoveAll(".tmp")
     if _, err := os.Stat(dname); os.IsNotExist(err) {
         os.MkdirAll(dname, os.ModePerm)
     }
