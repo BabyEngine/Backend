@@ -369,14 +369,16 @@ func (h *MessageServerHandler) BindFunc(name string, ref int) {
 }
 
 func (h *MessageServerHandler) SendClientData(clientId int64, data []byte) {
-    h.clientM.RLock()
-    cli, ok := h.clients[clientId]
-    h.clientM.RUnlock()
-    if ok {
-        if err := cli.SendData(data); err != nil {
-            logger.Debug(err)
+    go func() {
+        h.clientM.RLock()
+        cli, ok := h.clients[clientId]
+        h.clientM.RUnlock()
+        if ok {
+            if err := cli.SendData(data); err != nil {
+                logger.Debug(err)
+            }
         }
-    }
+    }()
 }
 //func (h *MessageServerHandler) SendClientRawData(clientId int64, op networking.OpCode, data []byte) {
 //    h.clientM.RLock()
@@ -390,14 +392,16 @@ func (h *MessageServerHandler) SendClientData(clientId int64, data []byte) {
 //}
 
 func (h *MessageServerHandler) SendClientRawDataEvent(clientId int64, e string, op networking.OpCode, data []byte) {
-    h.clientM.RLock()
-    cli, ok := h.clients[clientId]
-    h.clientM.RUnlock()
-    if ok {
-        if err := cli.SendRawEvent(e, op, data); err != nil {
-            logger.Debug(err)
+    go func() {
+        h.clientM.RLock()
+        cli, ok := h.clients[clientId]
+        h.clientM.RUnlock()
+        if ok {
+            if err := cli.SendRawEvent(e, op, data); err != nil {
+                logger.Debug(err)
+            }
         }
-    }
+    }()
 }
 
 func (h *MessageServerHandler) CloseClient(clientId int64) {
