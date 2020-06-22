@@ -97,7 +97,7 @@ print=function(...)
 end
 
 `
-    if requireBBELibLuaCode != "" && os.Getenv("IgnoreBBEHome") == "" {
+    if requireBBEHomeLib != "" && os.Getenv("IgnoreBBEHome") == "" {
         initLuaCode = requireBBEHomeLib + initLuaCode
     }
     if err := L.DoString(initLuaCode); err != nil {
