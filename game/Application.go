@@ -66,11 +66,11 @@ func (app *Application) Init(L *lua.State) {
 
     L.PushGoStruct(app)
     L.SetGlobal("AppContext")
-    // 检查时候存在homeLib
-    homeDir := UserHomeDir() + ".bbe/"
+    // 检查时候是否存在homeLib
+    homeDir := UserHomeDir() + "/.bbe/"
     requireBBEHomeLib := ""
-    if _, err := os.Stat("/path/to/whatever"); !os.IsNotExist(err) {
-        requireBBEHomeLib = fmt.Sprintf(`package.path=package.path .. ';%s/framework/?.lua'\n`, homeDir)
+    if _, err := os.Stat(homeDir); !os.IsNotExist(err) {
+        requireBBEHomeLib = fmt.Sprintf(`package.path=package.path .. ';%s/?.lua;'`, homeDir)
     }
     initLuaCode := `
 package.path=package.path .. ';./framework/?.lua'
