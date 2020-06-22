@@ -9,6 +9,7 @@ import (
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
     "os"
+    "runtime"
     "strings"
     "sync"
     "time"
@@ -65,7 +66,12 @@ func (app *Application) Init(L *lua.State) {
 
     L.PushGoStruct(app)
     L.SetGlobal("AppContext")
-
+    // 检查时候存在homeLib
+    homeDir := UserHomeDir() + ".bbe/"
+    requireBBEHomeLib := ""
+    if _, err := os.Stat("/path/to/whatever"); !os.IsNotExist(err) {
+        requireBBEHomeLib = fmt.Sprintf(`package.path=package.path .. ';%s/framework/?.lua'\n`, homeDir)
+    }
     initLuaCode := `
 package.path=package.path .. ';./framework/?.lua'
 pcall = pcall or unsafe_pcall
@@ -91,6 +97,9 @@ print=function(...)
 end
 
 `
+    if requireBBELibLuaCode != "" && os.Getenv("IgnoreBBEHome") == "" {
+        initLuaCode = requireBBEHomeLib + initLuaCode
+    }
     if err := L.DoString(initLuaCode); err != nil {
         fmt.Println(err)
     }
@@ -108,6 +117,17 @@ func injectArgs(L *lua.State) {
         }
     }
     L.SetTable(-3)
+}
+
+func UserHomeDir() string {
+    if runtime.GOOS == "windows" {
+        home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+        if home == "" {
+            home = os.Getenv("USERPROFILE")
+        }
+        return home
+    }
+    return os.Getenv("HOME")
 }
 
 func (app *Application) Start() {
