@@ -8,6 +8,7 @@ require('framework.funcs')
 require('framework.looper')
 require('framework.kv.db')
 require('framework.rpc.rpc')
+require('framework.event.manager')
 
 require('framework.jobs.Cron')
 
