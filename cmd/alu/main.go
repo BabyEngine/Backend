@@ -57,6 +57,7 @@ func runLuaApp() {
     }
     L := lua.NewState()
     L.OpenLibs()
+    L.OpenGoLibs()
     defer L.Close()
 
     if len(os.Args) == 1 {
