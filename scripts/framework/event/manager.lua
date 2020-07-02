@@ -1,5 +1,5 @@
 function NewEventManager()
-    local EventManager = {}
+    local self = {}
     local events = {}
     local id = 1
 
@@ -8,7 +8,7 @@ function NewEventManager()
     -- @params event   string   事件名称
     -- @params handler function 回调
     -- @return int 事件索引
-    function EventManager.AddListener( target, event, handler )
+    function self.AddListener( target, event, handler )
         if not event or type(event) ~= 'string' then
             print('event type error type should be string(' .. type(event) .. ')')
         end
@@ -53,7 +53,7 @@ function NewEventManager()
     -- @luadoc 移除监听器
     -- @params event string 事件名称
     -- @params ref   int    索引
-    function EventManager.RemoveListener(event, ref)
+    function self.RemoveListener(event, ref)
         if not events[event] then
             print('no such event:', event)
             return
@@ -64,7 +64,7 @@ function NewEventManager()
     -- @luadoc 触发事件
     -- @params event string 事件名称
     -- @params ...   args   参数
-    function EventManager.Dispatch(event, ... )
+    function self.Dispatch(event, ... )
         if type(event) ~= 'string' then
             print('Dispatch Event Args Error(' .. type(event) .. ')')
         end
@@ -74,4 +74,6 @@ function NewEventManager()
             print('no such event:' .. event)
         end
     end
+    
+    return self
 end
