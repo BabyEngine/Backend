@@ -116,12 +116,18 @@ func (app *Application) setupCloseHandler() {
     go func() {
         <-c
         fmt.Println("\r- Ctrl+C pressed in Terminal")
-        app.eventSys.Stop()
-        quitCode := `local fn = BabyEngine.App.OnApplicationQuit
+        wg := sync.WaitGroup{}
+        wg.Add(1)
+        app.eventSys.OnMainThread(func() {
+            quitCode := `local fn = BabyEngine.App.OnApplicationQuit
     if type(fn) == 'function' then fn() end`
-        if err := app.L.DoString(quitCode); err != nil {
-            logger.Error(err)
-        }
+            if err := app.L.DoString(quitCode); err != nil {
+                logger.Error(err)
+            }
+            wg.Done()
+        })
+        wg.Wait()
+        app.eventSys.Stop()
         os.Exit(0)
     }()
 }
@@ -182,6 +188,8 @@ func (app *Application) Start() {
     updateTimer()
     tickCounter := uint64(0)
     app.eventSys.OnUpdateFunc = func() {
+        app.beforeUpdate()
+        defer app.afterUpdate()
         tickCounter++
         // set Time.time
         updateTimer()
@@ -244,6 +252,13 @@ func (app *Application) Stop() {
     for _, s := range app.servers {
         s.Stop()
     }
+}
+
+func (app *Application) beforeUpdate() {
+
+}
+func (app *Application) afterUpdate() {
+
 }
 
 func (app *Application) SetNetServer(key interface{}, value networking.ClientHandler) {
