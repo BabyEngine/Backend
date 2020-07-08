@@ -9,6 +9,8 @@ git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999/go.mod h1:fPE2ZNJGy
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/DGHeroin/golua v1.0.1 h1:unO3BdpD30FLZSYHjp4PNjmr7brUvAQPTn2+IGVGetw=
 github.com/DGHeroin/golua v1.0.1/go.mod h1:XUn/8BJ+/10qQkJhEkJU+kS7LRoAoHu5ktt1mHraHII=
+github.com/DGHeroin/golua v1.0.2 h1:/M9Z+dWhm4nFHUBgh8hbltLUHy20+/1PC4nQZF6aM/4=
+github.com/DGHeroin/golua v1.0.2/go.mod h1:XUn/8BJ+/10qQkJhEkJU+kS7LRoAoHu5ktt1mHraHII=
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYUyUczH0OGQWaF5ceTx0UBShxjsH6f8oGKYe2c=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/boltdb/bolt v1.3.1 h1:JQmyP4ZBrce+ZQu0dY660FMfatumYDLun9hBCUVIkF4=
