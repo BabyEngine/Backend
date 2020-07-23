@@ -3,7 +3,7 @@ package hotzone
 import (
     "fmt"
     "github.com/BabyEngine/Backend/logger"
-    "github.com/BabyEngine/Backend/game"
+    "github.com/BabyEngine/Backend/core"
     "github.com/gorilla/websocket"
     "log"
     "net/http"
@@ -235,7 +235,7 @@ var (
 func enableCors(w *http.ResponseWriter) {
     (*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
-func EnableHotRestart(app *game.Application, restartCb func()) {
+func EnableHotRestart(app *core.Application, restartCb func()) {
     if isRunning { return }
     isRunning = true
     defer func() {

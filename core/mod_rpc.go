@@ -1,4 +1,4 @@
-package game
+package core
 
 import (
     "errors"
@@ -45,7 +45,6 @@ func initModRPC(L *lua.State) {
 }
 
 type rpcServer struct {
-    //server *rpc.JSONRPCServer
     server rpc.Server
 }
 

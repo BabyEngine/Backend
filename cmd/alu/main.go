@@ -4,7 +4,7 @@ import (
     "archive/tar"
     "fmt"
     "github.com/BabyEngine/Backend/logger"
-    "github.com/BabyEngine/Backend/game"
+    "github.com/BabyEngine/Backend/core"
     "github.com/BabyEngine/Backend/hotzone"
     "github.com/DGHeroin/golua/lua"
     "io"
@@ -17,7 +17,7 @@ import (
 )
 
 var (
-    app *game.Application
+    app *core.Application
     Version string = "v00.00.00"
 )
 
@@ -51,7 +51,7 @@ func printHelp() {
 }
 
 func runLuaApp() {
-    app = game.NewApp()
+    app = core.NewApp()
     if os.Getenv("HotReload") == "true" {
        go hotzone.EnableHotRestart(app, runLuaApp)
     }
