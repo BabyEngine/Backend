@@ -56,6 +56,8 @@ func (app *Application) Init(L *lua.State) {
     initModCron(L)
     // Hash
     initModHash(L)
+    // boltdbr
+    initModBoltDBR(L)
     //
     injectArgs(L)
 
