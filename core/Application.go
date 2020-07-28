@@ -9,9 +9,11 @@ import (
     "github.com/BabyEngine/Backend/networking"
     "github.com/DGHeroin/golua/lua"
     "os"
+    "os/signal"
     "runtime"
     "strings"
     "sync"
+    "syscall"
     "time"
 )
 
@@ -60,7 +62,7 @@ func (app *Application) Init(L *lua.State) {
     initModBoltDBR(L)
     //
     injectArgs(L)
-
+    app.setupCloseHandler()
     // 导出接口
     for k, v := range app.apiMap {
         L.Register(k, v)
@@ -85,6 +87,9 @@ BabyEngine.App.AddUpdateFunc(function()
         LooperManager.LateUpdateFunc()
     end
 end)
+function BabyEngine.App.OnApplicationQuit()
+    
+end
 __log_trace__ = false
 local _print = print
 print=function(...)
@@ -105,6 +110,28 @@ end
     if err := L.DoString(initLuaCode); err != nil {
         fmt.Println(err)
     }
+}
+
+func (app *Application) setupCloseHandler() {
+    c := make(chan os.Signal)
+    signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+    go func() {
+        <-c
+        fmt.Println("\r- Ctrl+C pressed in Terminal")
+        wg := sync.WaitGroup{}
+        wg.Add(1)
+        app.eventSys.OnMainThread(func() {
+            quitCode := `local fn = BabyEngine.App.OnApplicationQuit
+    if type(fn) == 'function' then fn() end`
+            if err := app.L.DoString(quitCode); err != nil {
+                logger.Error(err)
+            }
+            wg.Done()
+        })
+        wg.Wait()
+        app.eventSys.Stop()
+        os.Exit(0)
+    }()
 }
 
 func injectArgs(L *lua.State) {
@@ -163,6 +190,8 @@ func (app *Application) Start() {
     updateTimer()
     tickCounter := uint64(0)
     app.eventSys.OnUpdateFunc = func() {
+        app.beforeUpdate()
+        defer app.afterUpdate()
         tickCounter++
         // set Time.time
         updateTimer()
@@ -227,6 +256,13 @@ func (app *Application) Stop() {
     }
 }
 
+func (app *Application) beforeUpdate() {
+
+}
+func (app *Application) afterUpdate() {
+
+}
+
 func (app *Application) SetNetServer(key interface{}, value networking.ClientHandler) {
     app.serverM.Lock()
     if key != nil && value != nil { // add
@@ -245,3 +281,4 @@ func (app *Application) GetNetServer(key interface{}) networking.ClientHandler {
     }
     return nil
 }
+
