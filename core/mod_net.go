@@ -138,7 +138,6 @@ func StartNetServer(L *lua.State, netType string, address string, flags map[stri
 
 func BindNetServerFunc(L *lua.State, p interface{}, name string, ref int) {
     s := p.(*MessageServerHandler)
-    //L.GetGlobal("A")
     s.BindFunc(name, ref)
 }
 
@@ -157,14 +156,6 @@ func CloseClient(L *lua.State, p interface{}, cliId int64) {
     }
     s.CloseClient(cliId)
 }
-
-//func SendNetRawData(L *lua.State, p interface{}, cliId int64, op networking.OpCode, data []byte) {
-//    s := p.(*MessageServerHandler)
-//    if s == nil {
-//        return
-//    }
-//    s.SendClientRawData(cliId, op, data)
-//}
 
 func SendNetRawDataEvent(L *lua.State, p interface{}, cliId int64, event string, op networking.OpCode, data []byte) {
     s := p.(*MessageServerHandler)

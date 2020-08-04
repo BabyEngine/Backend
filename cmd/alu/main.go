@@ -3,9 +3,8 @@ package main
 import (
     "archive/tar"
     "fmt"
-    "github.com/BabyEngine/Backend/logger"
     "github.com/BabyEngine/Backend/core"
-    "github.com/BabyEngine/Backend/hotzone"
+    "github.com/BabyEngine/Backend/logger"
     "github.com/DGHeroin/golua/lua"
     "io"
     "io/ioutil"
@@ -16,10 +15,8 @@ import (
     "strings"
 )
 
-var (
-    app *core.Application
-    Version string = "v00.00.00"
-)
+var app *core.Application
+var Version = "v00.00.00"
 
 func main() {
     if len(os.Args) == 1 {
@@ -42,27 +39,24 @@ func main() {
 }
 
 func printHelp() {
-    usage:=`
+    var usage = `
     version | print current version
     run main.lua | run a lua file
     get framework.tar | get package form github repo
 `
-    fmt.Println(usage)
+    fmt.Print(usage)
 }
 
 func runLuaApp() {
     app = core.NewApp()
-    if os.Getenv("HotReload") == "true" {
-       go hotzone.EnableHotRestart(app, runLuaApp)
-    }
     L := lua.NewState()
     L.OpenLibs()
     L.OpenGoLibs()
     defer L.Close()
 
     if len(os.Args) == 1 {
-       logger.Warn("no input file")
-       return
+        logger.Warn("no input file")
+        return
     }
     var file string
     if len(os.Args) == 2 {
@@ -95,8 +89,8 @@ func runGetAction() {
 
     if strings.HasPrefix(what, "github.com") {
         urlTemplate = []string{
-            "https://"+what+"/releases/latest/download/%s",
-            "https://"+what+"/releases/download/%s/%s",
+            "https://" + what + "/releases/latest/download/%s",
+            "https://" + what + "/releases/download/%s/%s",
         }
         what = os.Args[3]
         tokens = strings.Split(what, "@")
@@ -112,7 +106,7 @@ func runGetAction() {
 
     var (
         packageName string
-        version string
+        version     string
         downloadUrl string
     )
     packageName = tokens[0]
@@ -129,34 +123,34 @@ func runGetAction() {
     }
     resp, err := http.Get(downloadUrl)
     if err != nil {
-       logger.Warnf("download error", err)
-       return
+        logger.Warnf("download error", err)
+        return
     }
     if resp.StatusCode != http.StatusOK {
-       logger.Warnf("%s %s", resp.Status, downloadUrl)
-       return
+        logger.Warnf("%s %s", resp.Status, downloadUrl)
+        return
     }
 
     defer resp.Body.Close()
     data, err := ioutil.ReadAll(resp.Body)
     if err != nil {
-      logger.Warnf("read data error:%v", err)
-      return
+        logger.Warnf("read data error:%v", err)
+        return
     }
     if data == nil {
-      return
+        return
     }
 
     dname := ".tmp/bbe"
     defer os.RemoveAll(".tmp")
     if _, err := os.Stat(dname); os.IsNotExist(err) {
-        os.MkdirAll(dname, os.ModePerm)
+        _ = os.MkdirAll(dname, os.ModePerm)
     }
     fname := filepath.Join(dname, packageName)
     err = ioutil.WriteFile(fname, data, os.ModePerm)
     if err != nil {
-      logger.Warnf("write file error:%v", err)
-      return
+        logger.Warnf("write file error:%v", err)
+        return
     }
 
     if err := untar(fname, "./"); err != nil {
@@ -206,6 +200,7 @@ func untar(archive, dst string) error {
         }
     }
 }
+
 // 判断目录是否存在
 func ExistDir(dirname string) bool {
     fi, err := os.Stat(dirname)

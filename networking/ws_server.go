@@ -26,7 +26,7 @@ func (s *mWebsocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         logger.Debugf("upgrade:%v", err)
         return
     }
-    s.handleKCPConn(c)
+    s.handleWSConn(c)
 }
 
 func (s *mWebsocketServer) Init() {
@@ -53,7 +53,7 @@ func (s *mWebsocketServer) Serve(address string) error {
     }
 }
 
-func (s *mWebsocketServer) handleKCPConn(conn *websocket.Conn) {
+func (s *mWebsocketServer) handleWSConn(conn *websocket.Conn) {
     client := &mWebsocketClient{
         conn:   conn,
         opts:   s.opts,

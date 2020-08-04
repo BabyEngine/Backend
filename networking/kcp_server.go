@@ -24,6 +24,9 @@ func (s *mKCPServer) Init() {
 }
 
 func (s *mKCPServer) Serve(address string) error {
+    var (
+        retErr error
+    )
     ln, err := kcp.Listen(address)
     if err != nil {
         return err
@@ -37,8 +40,9 @@ func (s *mKCPServer) Serve(address string) error {
         }
         ticker.Stop()
     }()
-
+    quitChan := make(chan bool)
     go func() {
+    OUT:
         for {
             select {
             case <-s.opts.Ctx.Done():
@@ -50,6 +54,8 @@ func (s *mKCPServer) Serve(address string) error {
                 ln = nil
             case <-ticker.C:
                 s.checkClient()
+            case <-quitChan:
+                break OUT
             }
         }
     }()
@@ -61,19 +67,26 @@ func (s *mKCPServer) Serve(address string) error {
                 // ignore code here
                 continue
             }
-            return err
+            logger.Error(err)
+            retErr = err
+            break
         }
         go s.handleKCPConn(conn)
     }
+    quitChan <- true
+    return retErr
 }
 
 func (s *mKCPServer) handleKCPConn(conn net.Conn) {
     client := &mKCPClient{
-        conn: conn,
-        opts: s.opts,
-        server:s,
+        conn:   conn,
+        opts:   s.opts,
+        server: s,
     }
+
     client.init()
+    logger.Debugf("accept kcp client: %s", client)
+
     s.wg.Add(1)
     defer func() {
         s.wg.Done()
@@ -88,7 +101,9 @@ func (s *mKCPServer) checkClient() {
         checkList []*mKCPClient
         deathList []*mKCPClient
     )
-    if s.opts == nil || s.opts.Handler == nil { return }
+    if s.opts == nil || s.opts.Handler == nil {
+        return
+    }
     clients := s.opts.Handler.GetAllClient()
     for _, cli := range clients {
         if cc, ok := cli.(*mKCPClient); ok {
@@ -115,7 +130,7 @@ func (s *mKCPServer) checkClient() {
 }
 
 // 网络统计
-func (s *mKCPServer) onNetStat(aType int, n, l uint64)  {
+func (s *mKCPServer) onNetStat(aType int, n, l uint64) {
     if aType == 0 {
         atomic.AddUint64(&s.rp, n)
         atomic.AddUint64(&s.rx, l)

@@ -33,7 +33,7 @@ type mKCPClient struct {
 func (c *mKCPClient) init() {
     c.stopChan = make(chan interface{}, 1)
     c.isStopRead = false
-    c.info = ""
+    c.info = fmt.Sprintf("%s : %s", c.conn.LocalAddr(), c.conn.RemoteAddr())
 }
 
 func (c *mKCPClient) Serve() {

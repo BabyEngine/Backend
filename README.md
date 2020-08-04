@@ -12,7 +12,7 @@ wget https://github.com/BabyEngine/Backend/releases/latest/download/alu-osx -O a
 Windows
 wget https://github.com/BabyEngine/Backend/releases/latest/download/alu-windows.exe -O alu
 2. 运行lua
-GameApp-linux run main.lua
+alu main.lua
 ```
 
 ### 下载自带框架,开箱即用(强烈推荐)

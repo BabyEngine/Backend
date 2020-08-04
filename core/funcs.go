@@ -70,8 +70,7 @@ func gStartNetServer(L *lua.State) int {
     L.GetGlobal("AppContext")
     _app := L.ToGoStruct(-1)
     app:= _app.(*Application)
-
-
+    
     server := StartNetServer(L, netType, addr, flags)
     app.SetNetServer(app, server)
 
